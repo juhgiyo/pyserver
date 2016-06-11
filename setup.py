@@ -8,7 +8,6 @@ except FileNotFoundError:
 setup(
   name = 'pyserver',
   packages = ['pyserver'], # this must be the same as the name above
-  version = '0.1',
   description = 'TCP/UDP Aysnchronous Server/Client Library',
   author = 'Woong Gyu La',
   author_email = 'juhgiyo@gmail.com',
