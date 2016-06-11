@@ -41,7 +41,7 @@ import sys
 import Queue
 from asyncoreController import AsyncoreController
 from inspect import isfunction
-from network import *
+from pyserver.network import *
 import traceback
 from sets import Set
 import copy

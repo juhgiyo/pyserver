@@ -39,7 +39,7 @@ import signal
 import sys
 import os
 from threading import *
-from network.asyncoreController import AsyncoreController
+from pyserver.network.asyncoreController import AsyncoreController
 import subprocess
 import traceback
 from subProcController import *

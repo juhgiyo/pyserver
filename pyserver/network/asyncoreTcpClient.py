@@ -43,7 +43,7 @@ from asyncoreController import AsyncoreController
 from inspect import isfunction
 from sets import Set
 from preamble import *
-from network import *
+from pyserver.network import *
 import traceback
 
 '''

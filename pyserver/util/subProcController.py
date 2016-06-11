@@ -38,7 +38,7 @@ SubProcController Class.
 import asyncore
 from threading import *
 from inspect import isfunction
-from util.singleton import Singleton
+from pyserver.util.singleton import Singleton
 from sets import Set
 import traceback
 import copy
