@@ -15,6 +15,7 @@ setup(
   url = 'https://github.com/juhgiyo/pyserver', # use the URL to the github repo
   keywords = ['tcp', 'udp', 'server', 'library'], # arbitrary keywords
   license="The MIT License (MIT)",
+  install_requires=['pyserialize'],
   classifiers = [
     # How mature is this project? Common values are
     #   3 - Alpha
