@@ -22,8 +22,7 @@ $ pip install git+git://github.com/juhgiyo/pyserver.git
 Usage Guide
 -----------
 
-```
-```
+Please see the [wiki page](https://github.com/juhgiyo/pyserver/wiki)
 
 
 Feature Requests and Bug Reports
