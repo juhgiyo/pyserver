@@ -2,7 +2,7 @@
 
 Python Asynchronous TCP/UDP Server Framework
 
-pyserialize
+pyserver
 ============
 
 `pyserver` is a simple python asynchronous TCP/UDP server/client library. 
