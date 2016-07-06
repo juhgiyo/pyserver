@@ -96,13 +96,14 @@ class AsyncoreController(Thread):
                     print e
                     traceback.print_exc()
             self.moduleSet = Set([])
-        self.hasModuleEvent.clear()
+        if not self.shouldStopEvent.is_set():
+            self.hasModuleEvent.clear()
 
     def discard(self, module):
         print 'asyncoreController discard called'
         with self.lock:
             self.moduleSet.discard(module)
-            if len(self.moduleSet) == 0:
+            if len(self.moduleSet) == 0 and not self.shouldStopEvent.is_set():
                 self.hasModuleEvent.clear()
 
 # foo = AsyncoreController.Instance()
