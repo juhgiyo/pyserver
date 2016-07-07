@@ -70,14 +70,14 @@ infos
 
 
 class AsyncoreMulticast(asyncore.dispatcher):
-    # loop : 1 enable loopback / 0 disable loopback
+    # enableLoopback : 1 enable loopback / 0 disable loopback
     # ttl: 0 - restricted to the same host
     #      1 - restricted to the same subnet
     #     32 - restricted to the same site
     #     64 - restricted to the same region
     #    128 - restricted to the same continent
     #    255 - unrestricted in scope
-    def __init__(self, port, callbackObj, ttl=1, loop=1, bindAddress=''):
+    def __init__(self, port, callbackObj, ttl=1, enableLoopback=False, bindAddress=''):
         asyncore.dispatcher.__init__(self)
         # self.lock = threading.RLock()
         self.MAX_MTU = 1500
@@ -86,7 +86,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
         self.multicastSet = Set([])
         self.lock = RLock()
         self.ttl = ttl
-        self.loop = loop
+        self.enableLoopback = enableLoopback
         if callbackObj is not None and isinstance(callbackObj, IUdpCallback):
             self.callbackObj = callbackObj
         else:
@@ -102,7 +102,10 @@ class AsyncoreMulticast(asyncore.dispatcher):
             # for both SENDER and RECEIVER to restrict the region
             self.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, self.ttl)
             # for SENDER to choose whether to use loop back
-            self.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, self.loop)
+            if self.enableLoopback:
+                self.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
+            else:
+                self.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
 
             self.bindAddress=bindAddress
             if self.bindAddress is None or self.bindAddress == '':
