@@ -94,7 +94,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
             self.create_socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.set_reuse_addr()
             try:
-                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+                socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             except AttributeError:
                 pass # Some systems don't support SO_REUSEPORT
             
