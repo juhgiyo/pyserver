@@ -64,7 +64,7 @@ functions
 - def getGroupList() # get group list
 infos
 - multicast address range: 224.0.0.0 - 239.255.255.255
-- linux : route add 224.0.0.0 netmask 240.0.0.0 dev eth0 
+- linux : route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0 
           to enable multicast
 '''
 
