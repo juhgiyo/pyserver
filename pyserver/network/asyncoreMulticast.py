@@ -82,6 +82,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
         # self.lock = threading.RLock()
         self.MAX_MTU = 1500
         self.callbackObj = None
+        self.port = port
         self.multicastSet = Set([])
         self.lock = RLock()
         self.ttl = ttl
