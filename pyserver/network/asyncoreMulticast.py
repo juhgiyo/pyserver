@@ -117,6 +117,8 @@ class AsyncoreMulticast(asyncore.dispatcher):
             traceback.print_exc()
         self.sendQueue = Queue.Queue()  # thread-safe queue
         AsyncoreController.Instance().add(self)
+        if self.callbackObj != None:
+            self.callbackObj.onStarted(self)
 
     # Even though UDP is connectionless this is called when it binds to a port
     def handle_connect(self):
