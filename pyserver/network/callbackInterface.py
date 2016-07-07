@@ -40,42 +40,51 @@ Interfaces for Callback Class.
 # UDP related callback object
 class IUdpCallback(object):
     def onStarted(self, server):
-        raise NotImplementedError("Should have implemented this")
+        #raise NotImplementedError("Should have implemented this")
+        pass
 
     def onStopped(self, server):
-        raise NotImplementedError("Should have implemented this")
+        pass
 
     def onReceived(self, server, addr, data):
-        raise NotImplementedError("Should have implemented this")
+        pass
 
     def onSent(self, server, status, data):
-        raise NotImplementedError("Should have implemented this")
+        pass
+
+    # For Multicast Only
+    def onJoin(self,server, multicastAddress):
+        pass
+        
+    # For Multicast Only
+    def onLeave(self,server, multicastAddress):
+        pass
 
 
 # TCP related callback object
 class ITcpSocketCallback(object):
     def onNewConnection(self, sock, err):
-        raise NotImplementedError("Should have implemented this")
+        pass
 
     def onDisconnect(self, sock):
-        raise NotImplementedError("Should have implemented this")
+        pass
 
     def onReceived(self, sock, data):
-        raise NotImplementedError("Should have implemented this")
+        pass
 
     def onSent(self, sock, status, data):
-        raise NotImplementedError("Should have implemented this")
+        pass
 
 
 class ITcpServerCallback(object):
     def onStarted(self, server):
-        raise NotImplementedError("Should have implemented this")
+        pass
 
     def onAccepted(self, server, sock):
-        raise NotImplementedError("Should have implemented this")
+        pass
 
     def onStopped(self, server):
-        raise NotImplementedError("Should have implemented this")
+        pass
 
 
 class IAcceptor(object):
@@ -87,39 +96,3 @@ class IAcceptor(object):
     def getSocketCallback(self):
         raise NotImplementedError("Should have implemented this")
 
-
-# Default TCP related callback object
-class DefaultSocketCallback(ITcpSocketCallback):
-    def onNewConnection(self, sock, err):
-        pass
-
-    def onDisconnect(self, sock):
-        pass
-
-    def onReceived(self, sock, data):
-        pass
-
-    def onSent(self, sock, status, data):
-        pass
-
-
-class DefaultServerCallback(ITcpServerCallback):
-    def onAccepted(self, server, sock):
-        pass
-
-    def onStopped(self, server):
-        pass
-
-
-class DefaultAcceptor(IAcceptor):
-    def __init__(self, socketCallbackClass=None):
-        self.socketCallbackClass = DefaultSocketCallback
-        if socketCallbackClass is not None:
-            self.socketCallbackClass = socketCallbackClass;
-
-    def onAccept(self, server, addr):
-        return True
-
-    def getSocketCallback(self):
-        # return the instance of a ITcpSocketCallback
-        return self.socketCallbackClass()

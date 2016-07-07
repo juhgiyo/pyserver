@@ -61,6 +61,7 @@ functions
 - def close() # close the socket
 - def join(multicastAddress) # start receiving datagram from given multicast group
 - def leave(multicastAddress) # stop receiving datagram from given multicast group
+- def getGroupList() # get group list
 infos
 - multicast address range: 224.0.0.0 - 239.255.255.255
 - linux : route add 224.0.0.0 netmask 240.0.0.0 dev eth0 
@@ -182,6 +183,8 @@ class AsyncoreMulticast(asyncore.dispatcher):
                 self.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP,
                                 socket.inet_aton(multicastAddress) + socket.INADDR_ANY)
                 self.multicastSet.add(multicastAddress)
+                if self.callbackObj != None:
+                    self.callbackObj.onJoin(self,multicastAddress)
 
     # for RECEIVER to stop receiving datagram from the multicast group
     def leave(self, multicastAddress):
@@ -190,6 +193,12 @@ class AsyncoreMulticast(asyncore.dispatcher):
                 self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
                                 socket.inet_aton(multicastAddress) + socket.INADDR_ANY)
                 self.multicastSet.discard(multicastAddress)
+                if self.callbackObj != None:
+                    self.callbackObj.onLeave(self,multicastAddress)
+
+    def getGroupList(self):
+        with self.lock:
+            return copy.copy(self.multicastSet)
 
     def gethostbyname(self, arg):
         return self.socket.gethostbyname(arg)
