@@ -162,13 +162,13 @@ class AsyncoreMulticast(asyncore.dispatcher):
 
     def handle_close(self):
         try:
-            asyncore.dispatcher.close(self)
             with self.lock:
                 deleteSet = copy.copy(self.multicastSet)
                 for multicastAddress in deleteSet:
                     self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
                                     socket.inet_aton(multicastAddress) + socket.inet_aton('0.0.0.0'))
                 self.multicastSet = Set([])
+            asyncore.dispatcher.close(self)
             AsyncoreController.Instance().discard(self)
             if self.callbackObj != None:
                 self.callbackObj.onStopped(self)
