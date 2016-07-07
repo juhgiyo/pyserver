@@ -183,7 +183,7 @@ class AsyncoreTcpServer(asyncore.dispatcher):
         self.lock = threading.RLock()
         self.sockSet = Set([]);
 
-        self.acceptor = DefaultAcceptor()
+        self.acceptor = None
         if acceptor != None and isinstance(acceptor, IAcceptor):
             self.acceptor = acceptor
         else:
