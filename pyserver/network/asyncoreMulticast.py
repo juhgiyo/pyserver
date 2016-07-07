@@ -164,20 +164,23 @@ class AsyncoreMulticast(asyncore.dispatcher):
         self.handle_close()
 
     def handle_close(self):
+
         try:
+            deleteSet = self.getGroupList()
+            for multicastAddress in deleteSet:
+                self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
+                                socket.inet_aton(multicastAddress) + socket.inet_aton('0.0.0.0'))
+                if self.callbackObj != None:
+                    self.callbackObj.onLeave(self,multicastAddress)
             with self.lock:
-                try:
-                    deleteSet = copy.copy(self.multicastSet)
-                    for multicastAddress in deleteSet:
-                        self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
-                                        socket.inet_aton(multicastAddress) + socket.inet_aton('0.0.0.0'))
-                        if self.callbackObj != None:
-                            self.callbackObj.onLeave(self,multicastAddress)
-                    self.multicastSet = Set([])
-                except Exception as e:
-                    print e
-            asyncore.dispatcher.close(self)
-            AsyncoreController.Instance().discard(self)
+                self.multicastSet = Set([])
+        except Exception as e:
+            print e
+
+        print 'asyncoreUdp close called'
+        asyncore.dispatcher.close(self)
+        AsyncoreController.Instance().discard(self)
+        try:
             if self.callbackObj != None:
                 self.callbackObj.onStopped(self)
         except Exception as e:
