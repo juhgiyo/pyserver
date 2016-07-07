@@ -163,11 +163,16 @@ class AsyncoreMulticast(asyncore.dispatcher):
     def handle_close(self):
         try:
             with self.lock:
-                deleteSet = copy.copy(self.multicastSet)
-                for multicastAddress in deleteSet:
-                    self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
-                                    socket.inet_aton(multicastAddress) + socket.inet_aton('0.0.0.0'))
-                self.multicastSet = Set([])
+                try:
+                    deleteSet = copy.copy(self.multicastSet)
+                    for multicastAddress in deleteSet:
+                        self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
+                                        socket.inet_aton(multicastAddress) + socket.inet_aton('0.0.0.0'))
+                        if self.callbackObj != None:
+                            self.callbackObj.onLeave(self,multicastAddress)
+                    self.multicastSet = Set([])
+                except Exception as e:
+                    print e
             asyncore.dispatcher.close(self)
             AsyncoreController.Instance().discard(self)
             if self.callbackObj != None:
@@ -195,12 +200,15 @@ class AsyncoreMulticast(asyncore.dispatcher):
     # for RECEIVER to stop receiving datagram from the multicast group
     def leave(self, multicastAddress):
         with self.lock:
-            if multicastAddress in self.multicastSet:
-                self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
-                                socket.inet_aton(multicastAddress) + socket.inet_aton('0.0.0.0'))
-                self.multicastSet.discard(multicastAddress)
-                if self.callbackObj != None:
-                    self.callbackObj.onLeave(self,multicastAddress)
+            try:
+                if multicastAddress in self.multicastSet:
+                    self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
+                                    socket.inet_aton(multicastAddress) + socket.inet_aton('0.0.0.0'))
+                    self.multicastSet.discard(multicastAddress)
+                    if self.callbackObj != None:
+                        self.callbackObj.onLeave(self,multicastAddress)
+            except Exception as e:
+                print e
 
     def getGroupList(self):
         with self.lock:
