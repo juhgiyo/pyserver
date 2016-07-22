@@ -36,28 +36,47 @@ THE SOFTWARE.
 Multiple Event Wait OrEvent Class.
 '''
 import threading
-
+import traceback
 
 def or_set(self):
     self._set()
-    self.changed()
-
+    for callback in self.changed:
+        try:
+            callback()
+        except Exception as e:
+            print e
+            traceback.print_exc()
 
 def or_clear(self):
     self._clear()
-    self.changed()
+    for callback in self.changed:
+        try:
+            callback()
+        except Exception as e:
+            print e
+            traceback.print_exc()
 
 
 def orify(e, changed_callback):
-    e._set = e.set
-    e._clear = e.clear
-    e.changed = changed_callback
-    e.set = lambda: or_set(e)
-    e.clear = lambda: or_clear(e)
+    if not e._set:
+        e._set = e.set
+        e._clear = e.clear
+        e.set = lambda: or_set(e)
+        e.clear = lambda: or_clear(e)
+        e.changed=[]
+    e.changed.append(changed_callback)
+    
+def or_close(self,changed_callback):
+    for e in self.events:
+        e.changed.remove(changed_callbackn)
 
+def or_exit(self, exc_type, exc_value, traceback):
+    self.close()
 
 def OrEvent(*events):
     or_event = threading.Event()
+    or_event.events=events
+    
 
     def changed():
         bools = [e.is_set() for e in events]
@@ -65,7 +84,9 @@ def OrEvent(*events):
             or_event.set()
         else:
             or_event.clear()
-
+    
+    or_event.close=lambda: or_close(or_event,changed)
+    or_event.__exit__=lambda exc_type,exc_value,traceback: or_exit(or_event,exc_type,exc_value,traceback)
     for e in events:
         orify(e, changed)
     changed()
