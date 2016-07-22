@@ -38,40 +38,57 @@ Multiple Event Wait OrEvent Class.
 import threading
 import traceback
 
-def or_set(self):
+def orSubEvent_set(self):
     self._set()
-    for callback in self.changed:
+    callbacks = []
+    with self.lock:
+        callbacks=self.changed
+    for callback in callbacks:
         try:
             callback()
         except Exception as e:
             print e
             traceback.print_exc()
 
-def or_clear(self):
+def orSubEvent_clear(self):
     self._clear()
-    for callback in self.changed:
+    callbacks = []
+    with self.lock:
+        callbacks=self.changed
+    for callback in callbacks:
         try:
             callback()
         except Exception as e:
             print e
             traceback.print_exc()
 
+def orSubEvent_remove(self,changed_callback):
+    with self.lock:
+        self.changed.remove(changed_callback)
 
 def orify(e, changed_callback):
     if not hasattr(e, '_set'):
         e._set = e.set
         e._clear = e.clear
-        e.set = lambda: or_set(e)
-        e.clear = lambda: or_clear(e)
-        e.changed=[]
-    e.changed.append(changed_callback)
-    
+        e.set = lambda: orSubEvent_set(e)
+        e.clear = lambda: orSubEvent_clear(e)
+        e.remove = lambda changed: orSubEvent_remove(e,changed)
+        e.lock = threading.RLock()
+        with e.lock:
+            e.changed=[]
+    with e.lock:
+        e.changed.append(changed_callback)
+
 def or_close(self,changed_callback):
     for e in self.events:
         e.changed.remove(changed_callback)
 
 def or_exit(self, exc_type, exc_value, traceback):
     self.close()
+
+def or_del(self):
+    self.close()
+
 
 def OrEvent(*events):
     or_event = threading.Event()
@@ -84,9 +101,10 @@ def OrEvent(*events):
             or_event.set()
         else:
             or_event.clear()
-    
+
     or_event.close=lambda: or_close(or_event,changed)
     or_event.__exit__=lambda exc_type,exc_value,traceback: or_exit(or_event,exc_type,exc_value,traceback)
+    or_event.__del__ = lambda : or_del(or_event)
     for e in events:
         orify(e, changed)
     changed()
