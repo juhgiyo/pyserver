@@ -58,7 +58,7 @@ def or_clear(self):
 
 
 def orify(e, changed_callback):
-    if not e._set:
+    if not hasattr(e, '_set'):
         e._set = e.set
         e._clear = e.clear
         e.set = lambda: or_set(e)
@@ -68,7 +68,7 @@ def orify(e, changed_callback):
     
 def or_close(self,changed_callback):
     for e in self.events:
-        e.changed.remove(changed_callbackn)
+        e.changed.remove(changed_callback)
 
 def or_exit(self, exc_type, exc_value, traceback):
     self.close()
