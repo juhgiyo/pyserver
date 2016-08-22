@@ -97,8 +97,9 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
                         preambleOffset = Preamble.checkPreamble(self.transport['packet'])
                         self.transport['offset'] = len(self.transport['packet']) - preambleOffset
                         self.transport['size'] = preambleOffset
-                        self.transport['packet'] = self.transport['packet'][
-                                                   len(self.transport['packet']) - preambleOffset:]
+                        #self.transport['packet'] = self.transport['packet'][
+                        #                           len(self.transport['packet']) - preambleOffset:]
+                        self.transport['packet'] = self.transport['packet'][preambleOffset:]
                         return
                     self.transport = {'packet': None, 'type': PacketType.DATA, 'size': shouldReceive, 'offset': 0}
                 else:
@@ -128,7 +129,7 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
                 state = State.FAIL_SOCKET_ERROR
             try:
                 if self.callbackObj != None:
-                    self.callbackObj.onSent(self, state, sendObj['data'])
+                    self.callbackObj.onSent(self, state, sendObj['data'][SIZE_PACKET_LENGTH:])
             except Exception as e:
                 print e
                 traceback.print_exc()
