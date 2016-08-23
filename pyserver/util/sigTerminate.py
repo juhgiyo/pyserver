@@ -45,7 +45,7 @@ import traceback
 from subProcController import *
 
 
-def setSigTerminate(signalEvent, shouldAbort=False):
+def setSigTerminate(signalEvent=None, shouldAbort=False):
     # Setting console ctrl+c exit
     def handler(signum, frame):
         print 'Ctrl+C detected!'
@@ -53,7 +53,8 @@ def setSigTerminate(signalEvent, shouldAbort=False):
         AsyncoreController.Instance().join()
         SubProcController.Instance().killAll()
         print 'You pressed Ctrl+C! Signaling event...'
-        signalEvent.set()
+        if signalEvent is not None:
+            signalEvent.set()
         if shouldAbort:
             os._exit(1)
 
