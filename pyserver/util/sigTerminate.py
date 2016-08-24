@@ -49,6 +49,7 @@ def setSigTerminate(signalEvent=None):
     # Setting console ctrl+c exit
     signalTriggered=False
     def handler(signum, frame):
+        nonlocal signalTriggered
         print 'Ctrl+C detected!'
         AsyncoreController.Instance().stop()
         AsyncoreController.Instance().join()
