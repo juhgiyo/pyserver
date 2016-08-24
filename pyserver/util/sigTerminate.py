@@ -58,7 +58,7 @@ def setSigTerminate(signalEvent=None):
             print 'You pressed Ctrl+C! Signaling event...'
             signalEvent.set()
         if signalTriggered:
-            print 'You pressed Ctrl+C! Exiting...'
+            print 'You pressed Ctrl+C again! Exiting...'
             os._exit(1)
         signalTriggered=True
 
