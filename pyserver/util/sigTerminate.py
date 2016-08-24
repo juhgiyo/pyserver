@@ -54,11 +54,11 @@ def setSigTerminate(signalEvent=None):
         AsyncoreController.Instance().join()
         SubProcController.Instance().killAll()
         
-        if signalEvent is not None:
+        if not signalTriggered and signalEvent is not None:
             print 'You pressed Ctrl+C! Signaling event...'
             signalEvent.set()
-        if signalTriggered:
-            print 'You pressed Ctrl+C again! Exiting...'
+        else:
+            print 'You pressed Ctrl+C! Exiting...'
             os._exit(1)
         signalTriggered=True
 
