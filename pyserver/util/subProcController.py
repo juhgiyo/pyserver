@@ -37,7 +37,7 @@ SubProcController Class.
 """
 from threading import *
 
-from pyserver.util.singleton import Singleton
+from util.singleton import Singleton
 # noinspection PyDeprecation
 import traceback
 import copy

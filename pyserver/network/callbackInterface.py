@@ -93,5 +93,5 @@ class IAcceptor(object):
         raise NotImplementedError("Should have implemented this")
 
     # requires return socket callback object
-    def getsocketcallback(self):
+    def get_socket_callback(self):
         raise NotImplementedError("Should have implemented this")

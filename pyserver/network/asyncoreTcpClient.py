@@ -35,9 +35,17 @@ THE SOFTWARE.
 
 AsyncoreTcpClient Class.
 """
+import asyncore
+import socket
+from collections import deque
+from threading import *
 
-from pyserver.network import *
-
+from asyncoreController import AsyncoreController
+from callbackInterface import *
+from serverConf import *
+# noinspection PyDeprecation
+from preamble import *
+import traceback
 '''
 Interfaces
 variables
@@ -79,7 +87,7 @@ class AsyncoreTcpClient(asyncore.dispatcher):
         finally:
             def callback_connection():
                 if self.callback is not None:
-                    self.callback.onNewConnection(self, err)
+                    self.callback.on_newconnection(self, err)
 
             thread = Thread(target=callback_connection)
             thread.start()
@@ -115,7 +123,7 @@ class AsyncoreTcpClient(asyncore.dispatcher):
                 else:
                     receive_packet = self.transport
                     self.transport = {'packet': None, 'type': PacketType.SIZE, 'size': SIZE_PACKET_LENGTH, 'offset': 0}
-                    self.callback.onReceived(self, receive_packet['packet'])
+                    self.callback.on_received(self, receive_packet['packet'])
         except Exception as e:
             print e
             traceback.print_exc()
@@ -139,7 +147,7 @@ class AsyncoreTcpClient(asyncore.dispatcher):
                 state = State.FAIL_SOCKET_ERROR
             try:
                 if self.callback is not None:
-                    self.callback.onSent(self, state, send_obj['data'][SIZE_PACKET_LENGTH:])
+                    self.callback.on_sent(self, state, send_obj['data'][SIZE_PACKET_LENGTH:])
             except Exception as e:
                 print e
                 traceback.print_exc()
@@ -158,13 +166,13 @@ class AsyncoreTcpClient(asyncore.dispatcher):
             asyncore.dispatcher.close(self)
             AsyncoreController.Instance().discard(self)
             if self.callback is not None:
-                self.callback.onDisconnect(self)
+                self.callback.on_disconnect(self)
         except Exception as e:
             print e
             traceback.print_exc()
 
     def send(self, data):
-        self.sendQueue.append({'data': Preamble.toPreamblePacket(len(data)) + data, 'offset': 0})
+        self.sendQueue.append({'data': Preamble.to_preamble_packet(len(data)) + data, 'offset': 0})
 
     def gethostbyname(self, arg):
         return self.socket.gethostbyname(arg)

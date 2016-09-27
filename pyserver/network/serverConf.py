@@ -35,7 +35,7 @@ THE SOFTWARE.
 
 Server Configurations Class.
 """
-from pyserver.util.enum import *
+from util.enum import *
 
 State = Enum(['SUCCESS', 'FAIL_SOCKET_ERROR'])
 PacketType = Enum(['SIZE', 'DATA'])

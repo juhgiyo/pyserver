@@ -36,13 +36,13 @@ THE SOFTWARE.
 AsyncoreController Class.
 """
 import asyncore
-import copy
-import traceback
-# noinspection PyDeprecation
-from sets import Set
 from threading import *
 
-from pyserver.util.singleton import Singleton
+from util.singleton import Singleton
+# noinspection PyDeprecation
+from sets import Set
+import traceback
+import copy
 
 
 @Singleton

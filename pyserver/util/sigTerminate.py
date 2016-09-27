@@ -37,7 +37,7 @@ call set_sigterm() to terminate the python with Ctrl+C
 """
 import signal
 
-from pyserver.network.asyncoreController import AsyncoreController
+from network.asyncoreController import AsyncoreController
 
 from subProcController import *
 

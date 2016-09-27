@@ -35,8 +35,13 @@ THE SOFTWARE.
 
 AsyncoreUDP Class.
 """
-
-from pyserver.network import *
+import Queue
+import asyncore
+import socket
+import traceback
+from callbackInterface import *
+from serverConf import *
+from asyncoreController import AsyncoreController
 
 IP_MTU_DISCOVER = 10
 IP_PMTUDISC_DONT = 0  # Never send DF frames.
@@ -77,7 +82,7 @@ class AsyncoreUDP(asyncore.dispatcher):
         self.sendQueue = Queue.Queue()  # thread-safe queue
         AsyncoreController.Instance().add(self)
         if self.callback is not None:
-            self.callback.onStarted(self)
+            self.callback.on_started(self)
 
     # Even though UDP is connectionless this is called when it binds to a port
     def handle_connect(self):
@@ -88,7 +93,7 @@ class AsyncoreUDP(asyncore.dispatcher):
         try:
             data, addr = self.recvfrom(self.MAX_MTU)
             if data and self.callback is not None:
-                self.callback.onReceived(self, addr, data)
+                self.callback.on_received(self, addr, data)
         except Exception as e:
             print e
             traceback.print_exc()
@@ -111,7 +116,7 @@ class AsyncoreUDP(asyncore.dispatcher):
                 state = State.FAIL_SOCKET_ERROR
             try:
                 if self.callback is not None:
-                    self.callback.onSent(self, state, send_obj['data'])
+                    self.callback.on_sent(self, state, send_obj['data'])
             except Exception as e:
                 print e
                 traceback.print_exc()
@@ -128,7 +133,7 @@ class AsyncoreUDP(asyncore.dispatcher):
         AsyncoreController.Instance().discard(self)
         try:
             if self.callback is not None:
-                self.callback.onStopped(self)
+                self.callback.on_stopped(self)
         except Exception as e:
             print e
             traceback.print_exc()

@@ -36,7 +36,18 @@ THE SOFTWARE.
 AsyncoreMulticast Class.
 """
 
-from pyserver.network import *
+import Queue
+import asyncore
+import socket
+import traceback
+from threading import *
+
+from serverConf import *
+from callbackInterface import *
+from asyncoreController import AsyncoreController
+# noinspection PyDeprecation
+from sets import Set
+import copy
 
 IP_MTU_DISCOVER = 10
 IP_PMTUDISC_DONT = 0  # Never send DF frames.
@@ -113,7 +124,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
         self.sendQueue = Queue.Queue()  # thread-safe queue
         AsyncoreController.Instance().add(self)
         if self.callback_obj is not None:
-            self.callback_obj.onStarted(self)
+            self.callback_obj.on_started(self)
 
     # Even though UDP is connectionless this is called when it binds to a port
     def handle_connect(self):
@@ -124,7 +135,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
         try:
             data, addr = self.recvfrom(self.MAX_MTU)
             if data and self.callback_obj is not None:
-                self.callback_obj.onReceived(self, addr, data)
+                self.callback_obj.on_received(self, addr, data)
         except Exception as e:
             print e
             traceback.print_exc()
@@ -147,7 +158,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
                 state = State.FAIL_SOCKET_ERROR
             try:
                 if self.callback_obj is not None:
-                    self.callback_obj.onSent(self, state, send_obj['data'])
+                    self.callback_obj.on_sent(self, state, send_obj['data'])
             except Exception as e:
                 print e
                 traceback.print_exc()
@@ -166,7 +177,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
                 self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
                                 socket.inet_aton(multicast_addr) + socket.inet_aton('0.0.0.0'))
                 if self.callback_obj is not None:
-                    self.callback_obj.onLeave(self, multicast_addr)
+                    self.callback_obj.on_leave(self, multicast_addr)
             with self.lock:
                 self.multicastSet = Set([])
         except Exception as e:
@@ -177,7 +188,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
         AsyncoreController.Instance().discard(self)
         try:
             if self.callback_obj is not None:
-                self.callback_obj.onStopped(self)
+                self.callback_obj.on_stopped(self)
         except Exception as e:
             print e
             traceback.print_exc()
@@ -197,7 +208,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
                                 socket.inet_aton(multicast_addr) + socket.inet_aton(self.bind_addr))
                 self.multicastSet.add(multicast_addr)
                 if self.callback_obj is not None:
-                    self.callback_obj.onJoin(self, multicast_addr)
+                    self.callback_obj.on_join(self, multicast_addr)
 
     # for RECEIVER to stop receiving datagram from the multicast group
     def leave(self, multicast_addr):
@@ -208,7 +219,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
                                     socket.inet_aton(multicast_addr) + socket.inet_aton('0.0.0.0'))
                     self.multicastSet.discard(multicast_addr)
                     if self.callback_obj is not None:
-                        self.callback_obj.onLeave(self, multicast_addr)
+                        self.callback_obj.on_leave(self, multicast_addr)
             except Exception as e:
                 print e
 

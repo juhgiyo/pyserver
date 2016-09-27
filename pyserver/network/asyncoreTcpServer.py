@@ -35,10 +35,19 @@ THE SOFTWARE.
 
 AsyncoreTcpServer Class.
 """
+import asyncore
+import socket
+import threading
+from collections import deque
 
-from pyserver.network import *
-
+from asyncoreController import AsyncoreController
+from callbackInterface import *
+from serverConf import *
+# noinspection PyDeprecation
+from sets import Set
 from preamble import *
+import traceback
+import copy
 
 '''
 Interfaces
@@ -68,7 +77,7 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
             self.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         AsyncoreController.Instance().add(self)
         if callback is not None:
-            self.callback.onNewConnection(self, None)
+            self.callback.on_newconnection(self, None)
 
     def handle_read(self):
         try:
@@ -98,7 +107,7 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
                 else:
                     receive_packet = self.transport
                     self.transport = {'packet': None, 'type': PacketType.SIZE, 'size': SIZE_PACKET_LENGTH, 'offset': 0}
-                    self.callback.onReceived(self, receive_packet['packet'])
+                    self.callback.on_received(self, receive_packet['packet'])
         except Exception as e:
             print e
             traceback.print_exc()
@@ -122,7 +131,7 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
                 state = State.FAIL_SOCKET_ERROR
             try:
                 if self.callback is not None:
-                    self.callback.onSent(self, state, send_obj['data'][SIZE_PACKET_LENGTH:])
+                    self.callback.on_sent(self, state, send_obj['data'][SIZE_PACKET_LENGTH:])
             except Exception as e:
                 print e
                 traceback.print_exc()
@@ -143,7 +152,7 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
             self.server.discardSocket(self)
             AsyncoreController.Instance().discard(self)
             if self.callback is not None:
-                self.callback.onDisconnect(self)
+                self.callback.on_disconnect(self)
         except Exception as e:
             print e
             traceback.print_exc()
@@ -196,22 +205,22 @@ class AsyncoreTcpServer(asyncore.dispatcher):
 
         AsyncoreController.Instance().add(self)
         if self.callback is not None:
-            self.callback.onStarted(self)
+            self.callback.on_started(self)
 
     def handle_accept(self):
         try:
             sock_pair = self.accept()
             if sock_pair is not None:
                 sock, addr = sock_pair
-                if not self.acceptor.onAccept(self, addr):
+                if not self.acceptor.on_accept(self, addr):
                     sock.close()
                 else:
-                    sockcallback = self.acceptor.getSocketCallback()
+                    sockcallback = self.acceptor.get_socket_callback()
                     sock_obj = AsyncoreTcpSocket(self, sock, addr, sockcallback)
                     with self.lock:
                         self.sockSet.add(sock_obj)
                     if self.callback is not None:
-                        self.callback.onAccepted(self, sock_obj)
+                        self.callback.on_accepted(self, sock_obj)
         except Exception as e:
             print e
             traceback.print_exc()
@@ -236,7 +245,7 @@ class AsyncoreTcpServer(asyncore.dispatcher):
             asyncore.dispatcher.close(self)
             AsyncoreController.Instance().discard(self)
             if self.callback is not None:
-                self.callback.onStopped(self)
+                self.callback.on_stopped(self)
         except Exception as e:
             print e
             traceback.print_exc()
@@ -253,6 +262,6 @@ class AsyncoreTcpServer(asyncore.dispatcher):
                 item.close()
             self.sockSet = Set([])
 
-    def get_socklist(self):
+    def get_socket_list(self):
         with self.lock:
             return list(self.sockSet)
