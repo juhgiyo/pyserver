@@ -1,5 +1,5 @@
 #!/usr/bin/python
-'''
+"""
 @file orEvent.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
@@ -34,15 +34,16 @@ THE SOFTWARE.
 @section DESCRIPTION
 
 Multiple Event Wait OrEvent Class.
-'''
+"""
 import threading
 import traceback
 
-def orSubEvent_set(self):
+
+def orsubevent_set(self):
     self._set()
-    callbacks = []
+    # callbacks = []
     with self.lock:
-        callbacks=self.changed
+        callbacks = self.changed
     for callback in callbacks:
         try:
             callback()
@@ -50,11 +51,12 @@ def orSubEvent_set(self):
             print e
             traceback.print_exc()
 
-def orSubEvent_clear(self):
+
+def orsubevent_clear(self):
     self._clear()
-    callbacks = []
+    # callbacks = []
     with self.lock:
-        callbacks=self.changed
+        callbacks = self.changed
     for callback in callbacks:
         try:
             callback()
@@ -62,39 +64,46 @@ def orSubEvent_clear(self):
             print e
             traceback.print_exc()
 
-def orSubEvent_remove(self,changed_callback):
+
+def orsubevent_remove(self, changed_callback):
     with self.lock:
         self.changed.remove(changed_callback)
+
 
 def orify(e, changed_callback):
     if not hasattr(e, '_set'):
         e._set = e.set
         e._clear = e.clear
-        e.set = lambda: orSubEvent_set(e)
-        e.clear = lambda: orSubEvent_clear(e)
-        e.remove = lambda changed: orSubEvent_remove(e,changed)
+        e.set = lambda: orsubevent_set(e)
+        e.clear = lambda: orsubevent_clear(e)
+        e.remove = lambda changed: orsubevent_remove(e, changed)
         e.lock = threading.RLock()
         with e.lock:
-            e.changed=[]
+            e.changed = []
     with e.lock:
         e.changed.append(changed_callback)
 
-def or_close(self,changed_callback):
+
+def or_close(self, changed_callback):
     for e in self.events:
         e.changed.remove(changed_callback)
 
+
+# noinspection PyShadowingNames,PyUnusedLocal
 def or_exit(self, exc_type, exc_value, traceback):
     self.close()
+
 
 def or_del(self):
     self.close()
 
 
+# noinspection PyPep8Naming,PyShadowingNames
 def OrEvent(*events):
     or_event = threading.Event()
-    or_event.events=events
-    
+    or_event.events = events
 
+    # noinspection PyShadowingNames
     def changed():
         bools = [e.is_set() for e in events]
         if any(bools):
@@ -102,9 +111,9 @@ def OrEvent(*events):
         else:
             or_event.clear()
 
-    or_event.close=lambda: or_close(or_event,changed)
-    or_event.__exit__=lambda exc_type,exc_value,traceback: or_exit(or_event,exc_type,exc_value,traceback)
-    or_event.__del__ = lambda : or_del(or_event)
+    or_event.close = lambda: or_close(or_event, changed)
+    or_event.__exit__ = lambda exc_type, exc_value, traceback: or_exit(or_event, exc_type, exc_value, traceback)
+    or_event.__del__ = lambda: or_del(or_event)
     for e in events:
         orify(e, changed)
     changed()

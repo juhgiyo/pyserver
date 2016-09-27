@@ -1,5 +1,5 @@
 #!/usr/bin/python
-'''
+"""
 @file serverConf.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
@@ -34,7 +34,7 @@ THE SOFTWARE.
 @section DESCRIPTION
 
 Server Configurations Class.
-'''
+"""
 from pyserver.util.enum import *
 
 State = Enum(['SUCCESS', 'FAIL_SOCKET_ERROR'])

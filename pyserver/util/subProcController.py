@@ -1,8 +1,8 @@
 #!/usr/bin/python
-'''
+"""
 @file subProcController.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
-		<http://github.com/juhgiyo/pyserver>
+        <http://github.com/juhgiyo/pyserver>
 @date March 10, 2016
 @brief SubProcController Interface
 @version 0.1
@@ -34,12 +34,11 @@ THE SOFTWARE.
 @section DESCRIPTION
 
 SubProcController Class.
-'''
-import asyncore
+"""
 from threading import *
-from inspect import isfunction
+
 from pyserver.util.singleton import Singleton
-from sets import Set
+# noinspection PyDeprecation
 import traceback
 import copy
 import subprocess
@@ -52,10 +51,10 @@ class SubProcController(object):
         self.lock = RLock()
         self.subProcDict = {}
 
-    def killAll(self):
+    def kill_all(self):
         with self.lock:
-            deleteSet = copy.copy(self.subProcDict)
-            for key in deleteSet:
+            delete_set = copy.copy(self.subProcDict)
+            for key in delete_set:
                 try:
                     self.subProcDict[key].terminate()
                     print key, ' terminating...'
@@ -64,11 +63,11 @@ class SubProcController(object):
                     traceback.print_exc()
             self.subProcDict = {}
 
-    def createSubProcess(self, procName, arg):
+    def create_subprocess(self, proc_name, arg):
         proc = None
         with self.lock:
-            if procName in self.subProcDict:
-                raise Exception('procName already exists!')
+            if proc_name in self.subProcDict:
+                raise Exception('proc_name already exists!')
             try:
                 def preexec_function():
                     os.setpgrp()
@@ -76,29 +75,29 @@ class SubProcController(object):
                 proc = subprocess.Popen(arg
                                         , preexec_fn=preexec_function
                                         )
-                self.subProcDict[procName] = proc
+                self.subProcDict[proc_name] = proc
             except Exception as e:
                 print e
                 traceback.print_exc()
         return proc
 
-    def kill(self, procName):
+    def kill(self, proc_name):
         print 'subProcController kill called'
         with self.lock:
             try:
-                if isinstance(procName, str):
-                    if procName in self.subProcDict:
-                        self.subProcDict[procName].terminate()
-                        del self.subProcDict[procName]
+                if isinstance(proc_name, str):
+                    if proc_name in self.subProcDict:
+                        self.subProcDict[proc_name].terminate()
+                        del self.subProcDict[proc_name]
                 else:
-                    deleteKey = None
+                    delete_key = None
                     for key in self.subProcDict:
-                        if self.subProcDict[key] == procName:
+                        if self.subProcDict[key] == proc_name:
                             self.subProcDict[key].terminate()
-                            deleteKey = key
-                            break;
-                    if deleteKey is not None:
-                        del self.subProcDict[deleteKey]
+                            delete_key = key
+                            break
+                    if delete_key is not None:
+                        del self.subProcDict[delete_key]
             except Exception as e:
                 print e
                 traceback.print_exc()

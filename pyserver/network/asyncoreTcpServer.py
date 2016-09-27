@@ -1,5 +1,5 @@
 #!/usr/bin/python
-'''
+"""
 @file asyncoreTcpServer.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
@@ -34,23 +34,17 @@ THE SOFTWARE.
 @section DESCRIPTION
 
 AsyncoreTcpServer Class.
-'''
-import asyncore, socket, threading
-import sys
-from collections import deque
-from asyncoreController import AsyncoreController
-from inspect import isfunction
-from sets import Set
-from preamble import *
+"""
+
 from pyserver.network import *
-import traceback
-import copy
+
+from preamble import *
 
 '''
 Interfaces
 variable
 - addr
-- callbackObj
+- callback
 function
 - def send(data)
 - def close() # close the socket
@@ -58,54 +52,53 @@ function
 
 
 class AsyncoreTcpSocket(asyncore.dispatcher):
-    def __init__(self, server, sock, addr, callbackObj):
+    def __init__(self, server, sock, addr, callback):
         asyncore.dispatcher.__init__(self, sock)
         self.server = server
         self.isClosing = False
-        self.callbackObj = None
-        if callbackObj is not None and isinstance(callbackObj, ITcpSocketCallback):
-            self.callbackObj = callbackObj
+        self.callback = None
+        if callback is not None and isinstance(callback, ITcpSocketCallback):
+            self.callback = callback
         else:
-            raise Exception('callbackObj is None or not an instance of ITcpSocketCallback class')
+            raise Exception('callback is None or not an instance of ITcpSocketCallback class')
         self.addr = addr
         self.transport = {'packet': None, 'type': PacketType.SIZE, 'size': SIZE_PACKET_LENGTH, 'offset': 0}
         self.sendQueue = deque()  # thread-safe queue
-        if self.server.noDelay:
+        if self.server.no_delay:
             self.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         AsyncoreController.Instance().add(self)
-        if callbackObj is not None:
-            self.callbackObj.onNewConnection(self, None)
+        if callback is not None:
+            self.callback.onNewConnection(self, None)
 
     def handle_read(self):
         try:
             data = self.recv(self.transport['size'])
-            readSize = 0
-            if data == None or len(data) == 0:
+            if data is None or len(data) == 0:
                 return
             if self.transport['packet'] is None:
                 self.transport['packet'] = data
             else:
                 self.transport['packet'] += data
-            readSize = len(data)
-            if readSize < self.transport['size']:
-                self.transport['offset'] = self.transport['offset'] + readSize
-                self.transport['size'] = self.transport['size'] - readSize
+            read_size = len(data)
+            if read_size < self.transport['size']:
+                self.transport['offset'] += read_size
+                self.transport['size'] -= read_size
             else:
                 if self.transport['type'] == PacketType.SIZE:
-                    shouldReceive = Preamble.toShouldReceive(self.transport['packet'])
-                    if shouldReceive < 0:
-                        preambleOffset = Preamble.checkPreamble(self.transport['packet'])
-                        self.transport['offset'] = len(self.transport['packet']) - preambleOffset
-                        self.transport['size'] = preambleOffset
-                        #self.transport['packet'] = self.transport['packet'][
-                        #                           len(self.transport['packet']) - preambleOffset:]
-                        self.transport['packet'] = self.transport['packet'][preambleOffset:]
+                    should_receive = Preamble.to_should_receive(self.transport['packet'])
+                    if should_receive < 0:
+                        preamble_offset = Preamble.check_preamble(self.transport['packet'])
+                        self.transport['offset'] = len(self.transport['packet']) - preamble_offset
+                        self.transport['size'] = preamble_offset
+                        # self.transport['packet'] = self.transport['packet'][
+                        #                           len(self.transport['packet']) - preamble_offset:]
+                        self.transport['packet'] = self.transport['packet'][preamble_offset:]
                         return
-                    self.transport = {'packet': None, 'type': PacketType.DATA, 'size': shouldReceive, 'offset': 0}
+                    self.transport = {'packet': None, 'type': PacketType.DATA, 'size': should_receive, 'offset': 0}
                 else:
-                    receivePacket=self.transport
+                    receive_packet = self.transport
                     self.transport = {'packet': None, 'type': PacketType.SIZE, 'size': SIZE_PACKET_LENGTH, 'offset': 0}
-                    self.callbackObj.onReceived(self, receivePacket['packet'])
+                    self.callback.onReceived(self, receive_packet['packet'])
         except Exception as e:
             print e
             traceback.print_exc()
@@ -115,21 +108,21 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
 
     def handle_write(self):
         if len(self.sendQueue) != 0:
-            sendObj = self.sendQueue.popleft()
+            send_obj = self.sendQueue.popleft()
             state = State.SUCCESS
             try:
-                sent = asyncore.dispatcher.send(self, sendObj['data'][sendObj['offset']:])
-                if sent < len(sendObj['data']):
-                    sendObj['offset'] = sendObj['offset'] + sent
-                    self.sendQueue.appendLeft(sendObj)
+                sent = asyncore.dispatcher.send(self, send_obj['data'][send_obj['offset']:])
+                if sent < len(send_obj['data']):
+                    send_obj['offset'] = send_obj['offset'] + sent
+                    self.sendQueue.appendLeft(send_obj)
                     return
             except Exception as e:
                 print e
                 traceback.print_exc()
                 state = State.FAIL_SOCKET_ERROR
             try:
-                if self.callbackObj != None:
-                    self.callbackObj.onSent(self, state, sendObj['data'][SIZE_PACKET_LENGTH:])
+                if self.callback is not None:
+                    self.callback.onSent(self, state, send_obj['data'][SIZE_PACKET_LENGTH:])
             except Exception as e:
                 print e
                 traceback.print_exc()
@@ -149,26 +142,26 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
             asyncore.dispatcher.close(self)
             self.server.discardSocket(self)
             AsyncoreController.Instance().discard(self)
-            if self.callbackObj is not None:
-                self.callbackObj.onDisconnect(self)
+            if self.callback is not None:
+                self.callback.onDisconnect(self)
         except Exception as e:
             print e
             traceback.print_exc()
 
     def send(self, data):
-        self.sendQueue.append({'data': Preamble.toPreamblePacket(len(data)) + data, 'offset': 0})
+        self.sendQueue.append({'data': Preamble.to_preamble_packet(len(data)) + data, 'offset': 0})
 
     def gethostbyname(self, arg):
         return self.socket.gethostbyname(arg)
 
-    def gethostname():
+    def gethostname(self):
         return self.socket.gethostname()
 
 
 '''
 Interfaces
 variables
-- callbackObj
+- callback
 - acceptor
 functions
 - def close() # close the socket
@@ -178,47 +171,47 @@ functions
 
 
 class AsyncoreTcpServer(asyncore.dispatcher):
-    def __init__(self, port, callbackObj, acceptor, bindAddr='', noDelay=True):
+    def __init__(self, port, callback, acceptor, bind_addr='', no_delay=True):
         asyncore.dispatcher.__init__(self)
         self.isClosing = False
         self.lock = threading.RLock()
-        self.sockSet = Set([]);
+        self.sockSet = Set([])
 
         self.acceptor = None
-        if acceptor != None and isinstance(acceptor, IAcceptor):
+        if acceptor is not None and isinstance(acceptor, IAcceptor):
             self.acceptor = acceptor
         else:
             raise Exception('acceptor is None or not an instance of IAcceptor class')
-        self.callbackObj = None
-        if callbackObj is not None and isinstance(callbackObj, ITcpServerCallback):
-            self.callbackObj = callbackObj
+        self.callback = None
+        if callback is not None and isinstance(callback, ITcpServerCallback):
+            self.callback = callback
         else:
-            raise Exception('callbackObj is None or not an instance of ITcpServerCallback class')
+            raise Exception('callback is None or not an instance of ITcpServerCallback class')
         self.port = port
-        self.noDelay = noDelay
+        self.no_delay = no_delay
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.set_reuse_addr()
-        self.bind((bindAddr, port))
+        self.bind((bind_addr, port))
         self.listen(5)
 
         AsyncoreController.Instance().add(self)
-        if self.callbackObj != None:
-            self.callbackObj.onStarted(self)
+        if self.callback is not None:
+            self.callback.onStarted(self)
 
     def handle_accept(self):
         try:
-            sockPair = self.accept()
-            if sockPair is not None:
-                sock, addr = sockPair
+            sock_pair = self.accept()
+            if sock_pair is not None:
+                sock, addr = sock_pair
                 if not self.acceptor.onAccept(self, addr):
                     sock.close()
                 else:
-                    sockCallbackObj = self.acceptor.getSocketCallback()
-                    sockObj = AsyncoreTcpSocket(self, sock, addr, sockCallbackObj)
+                    sockcallback = self.acceptor.getSocketCallback()
+                    sock_obj = AsyncoreTcpSocket(self, sock, addr, sockcallback)
                     with self.lock:
-                        self.sockSet.add(sockObj)
-                    if self.callbackObj != None:
-                        self.callbackObj.onAccepted(self, sockObj)
+                        self.sockSet.add(sock_obj)
+                    if self.callback is not None:
+                        self.callback.onAccepted(self, sock_obj)
         except Exception as e:
             print e
             traceback.print_exc()
@@ -236,30 +229,30 @@ class AsyncoreTcpServer(asyncore.dispatcher):
             print 'asyncoreTcpServer close called'
             self.isClosing = True
             with self.lock:
-                deleteSet = copy.copy(self.sockSet)
-                for item in deleteSet:
+                delete_set = copy.copy(self.sockSet)
+                for item in delete_set:
                     item.close()
                 self.sockSet = Set([])
             asyncore.dispatcher.close(self)
             AsyncoreController.Instance().discard(self)
-            if self.callbackObj != None:
-                self.callbackObj.onStopped(self)
+            if self.callback is not None:
+                self.callback.onStopped(self)
         except Exception as e:
             print e
             traceback.print_exc()
 
-    def discardSocket(self, sock):
+    def discard_socket(self, sock):
         print 'asyncoreTcpServer discard socket called'
         with self.lock:
             self.sockSet.discard(sock)
 
-    def shutdownAllClient(self):
+    def shutdown_all(self):
         with self.lock:
-            deleteSet = copy.copy(self.sockSet)
-            for item in deleteSet:
+            delete_set = copy.copy(self.sockSet)
+            for item in delete_set:
                 item.close()
             self.sockSet = Set([])
 
-    def getSockList(self):
+    def get_socklist(self):
         with self.lock:
             return list(self.sockSet)

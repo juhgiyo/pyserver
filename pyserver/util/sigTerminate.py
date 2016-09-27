@@ -1,8 +1,8 @@
 #!/usr/bin/python
-'''
+"""
 @file sigTerminate.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
-		<http://github.com/juhgiyo/pyserver>
+        <http://github.com/juhgiyo/pyserver>
 @date March 10, 2016
 @brief SIGINT Terminate Interface
 @version 0.1
@@ -33,33 +33,33 @@ THE SOFTWARE.
 
 @section DESCRIPTION
 
-call setSigTerminate() to terminate the python with Ctrl+C
-'''
+call set_sigterm() to terminate the python with Ctrl+C
+"""
 import signal
-import sys
-import os
-from threading import *
+
 from pyserver.network.asyncoreController import AsyncoreController
-import subprocess
-import traceback
+
 from subProcController import *
 
 
-def setSigTerminate(signalEvent=None):
+def set_sigterm(signal_event=None):
     # Setting console ctrl+c exit
-    signalTriggered=[False]
+    signal_triggered = [False]
+
+    # noinspection PyUnusedLocal
     def handler(signum, frame):
         print 'Ctrl+C detected!'
         AsyncoreController.Instance().stop()
         AsyncoreController.Instance().join()
         SubProcController.Instance().killAll()
-        
-        if not signalTriggered[0] and signalEvent is not None:
+
+        if not signal_triggered[0] and signal_event is not None:
             print 'You pressed Ctrl+C! Signaling event...'
-            signalEvent.set()
+            signal_event.set()
         else:
             print 'You pressed Ctrl+C! Exiting...'
+            # noinspection PyProtectedMember
             os._exit(1)
-        signalTriggered[0]=True
+        signal_triggered[0] = True
 
     signal.signal(signal.SIGINT, handler)

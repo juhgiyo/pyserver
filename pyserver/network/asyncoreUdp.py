@@ -1,8 +1,8 @@
 #!/usr/bin/python
-'''
+"""
 @file asyncoreUDP.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
-		<http://github.com/juhgiyo/pyserver>
+        <http://github.com/juhgiyo/pyserver>
 @date March 10, 2016
 @brief AsyncoreUDP Interface
 @version 0.1
@@ -34,14 +34,9 @@ THE SOFTWARE.
 @section DESCRIPTION
 
 AsyncoreUDP Class.
-'''
-import asyncore, socket, threading
-import sys
-import Queue
-from asyncoreController import AsyncoreController
-from inspect import isfunction
+"""
+
 from pyserver.network import *
-import traceback
 
 IP_MTU_DISCOVER = 10
 IP_PMTUDISC_DONT = 0  # Never send DF frames.
@@ -52,23 +47,24 @@ IP_PMTUDISC_PROBE = 3  # Ignore dst pmtu.
 '''
 Interfaces
 variables
-- callbackObj
+- callback
 functions
 - def send(host,port,data)
 - def close() # close the socket
 '''
 
+
 class AsyncoreUDP(asyncore.dispatcher):
-    def __init__(self, port, callbackObj, bindaddress=''):
+    def __init__(self, port, callback, bindaddress=''):
         asyncore.dispatcher.__init__(self)
         # self.lock = threading.RLock()
         self.MAX_MTU = 1500
-        self.callbackObj = None
+        self.callback = None
         self.port = port
-        if callbackObj is not None and isinstance(callbackObj, IUdpCallback):
-            self.callbackObj = callbackObj
+        if callback is not None and isinstance(callback, IUdpCallback):
+            self.callback = callback
         else:
-            raise Exception('callbackObj is None or not an instance of IUdpCallback class')
+            raise Exception('callback is None or not an instance of IUdpCallback class')
         try:
             self.create_socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -80,8 +76,8 @@ class AsyncoreUDP(asyncore.dispatcher):
             traceback.print_exc()
         self.sendQueue = Queue.Queue()  # thread-safe queue
         AsyncoreController.Instance().add(self)
-        if self.callbackObj != None:
-            self.callbackObj.onStarted(self)
+        if self.callback is not None:
+            self.callback.onStarted(self)
 
     # Even though UDP is connectionless this is called when it binds to a port
     def handle_connect(self):
@@ -91,8 +87,8 @@ class AsyncoreUDP(asyncore.dispatcher):
     def handle_read(self):
         try:
             data, addr = self.recvfrom(self.MAX_MTU)
-            if data and self.callbackObj != None:
-                self.callbackObj.onReceived(self, addr, data)
+            if data and self.callback is not None:
+                self.callback.onReceived(self, addr, data)
         except Exception as e:
             print e
             traceback.print_exc()
@@ -103,19 +99,19 @@ class AsyncoreUDP(asyncore.dispatcher):
     # This is called all the time and causes errors if you leave it out.
     def handle_write(self):
         if not self.sendQueue.empty():
-            sendObj = self.sendQueue.get()
+            send_obj = self.sendQueue.get()
             state = State.SUCCESS
             try:
-                sent = self.sendto(sendObj['data'], (sendObj['hostname'], sendObj['port']))
-                if sent < len(sendObj['data']):
+                sent = self.sendto(send_obj['data'], (send_obj['hostname'], send_obj['port']))
+                if sent < len(send_obj['data']):
                     state = State.FAIL_SOCKET_ERROR
             except Exception as e:
                 print e
                 traceback.print_exc()
                 state = State.FAIL_SOCKET_ERROR
             try:
-                if self.callbackObj != None:
-                    self.callbackObj.onSent(self, state, sendObj['data'])
+                if self.callback is not None:
+                    self.callback.onSent(self, state, send_obj['data'])
             except Exception as e:
                 print e
                 traceback.print_exc()
@@ -131,12 +127,13 @@ class AsyncoreUDP(asyncore.dispatcher):
         asyncore.dispatcher.close(self)
         AsyncoreController.Instance().discard(self)
         try:
-            if self.callbackObj != None:
-                self.callbackObj.onStopped(self)
+            if self.callback is not None:
+                self.callback.onStopped(self)
         except Exception as e:
             print e
             traceback.print_exc()
 
+    # noinspection PyMethodOverriding
     def send(self, hostname, port, data):
         if len(data) <= self.MAX_MTU:
             self.sendQueue.put({'hostname': hostname, 'port': port, 'data': data})
@@ -146,24 +143,24 @@ class AsyncoreUDP(asyncore.dispatcher):
     def gethostbyname(self, arg):
         return self.socket.gethostbyname(arg)
 
-    def gethostname():
+    def gethostname(self):
         return self.socket.gethostname()
 
-    def getMTUSize(self):
+    def get_mtu_size(self):
         return self.MAX_MTU
 
-    def checkMTUSize(self, hostname, port):
+    def check_mtu_size(self, hostname, port):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(hostname, port)
         s.setsockopt(socket.IPPROTO_IP, IP_MTU_DISCOVER, IP_PMTUDISC_DO)
 
-        maxMTU = self.MAX_MTU
+        max_mtu = self.MAX_MTU
         try:
-            s.send('#' * maxMTU)
+            s.send('#' * max_mtu)
         except socket.error:
             option = getattr(socket.IPPROTO_IP, 'IP_MTU', 14)
-            maxMTU = s.getsockopt(socket.IPPROTO_IP, option)
-        return maxMTU
+            max_mtu = s.getsockopt(socket.IPPROTO_IP, option)
+        return max_mtu
 
 # Echo udp server test
 # def readHandle(sock,addr, data):

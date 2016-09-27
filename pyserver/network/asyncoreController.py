@@ -1,8 +1,8 @@
 #!/usr/bin/python
-'''
+"""
 @file asyncoreController.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
-		<http://github.com/juhgiyo/pyserver>
+        <http://github.com/juhgiyo/pyserver>
 @date March 10, 2016
 @brief AsyncoreController Interface
 @version 0.1
@@ -34,14 +34,15 @@ THE SOFTWARE.
 @section DESCRIPTION
 
 AsyncoreController Class.
-'''
+"""
 import asyncore
-from threading import *
-from inspect import isfunction
-from pyserver.util.singleton import Singleton
-from sets import Set
-import traceback
 import copy
+import traceback
+# noinspection PyDeprecation
+from sets import Set
+from threading import *
+
+from pyserver.util.singleton import Singleton
 
 
 @Singleton
@@ -52,7 +53,7 @@ class AsyncoreController(Thread):
         self.hasModuleEvent = Event()
         self.lock = RLock()
         self.moduleSet = Set([])
-        self.timeout=0.1
+        self.timeout = 0.1
 
         # Self start the thread
         self.start()
@@ -70,26 +71,26 @@ class AsyncoreController(Thread):
 
     def stop(self):
         with self.lock:
-            deleteSet = copy.copy(self.moduleSet)
-            for item in deleteSet:
+            delete_set = copy.copy(self.moduleSet)
+            for item in delete_set:
                 try:
                     item.close()
                 except Exception as e:
                     print e
                     traceback.print_exc()
             self.moduleSet = Set([])
-        self.shouldStopEvent.set();
-        self.hasModuleEvent.set();
+        self.shouldStopEvent.set()
+        self.hasModuleEvent.set()
 
     def add(self, module):
         with self.lock:
             self.moduleSet.add(module)
-        self.hasModuleEvent.set();
+        self.hasModuleEvent.set()
 
     def clear(self):
         with self.lock:
-            deleteSet = copy.copy(self.moduleSet)
-            for item in deleteSet:
+            delete_set = copy.copy(self.moduleSet)
+            for item in delete_set:
                 try:
                     item.close()
                 except Exception as e:

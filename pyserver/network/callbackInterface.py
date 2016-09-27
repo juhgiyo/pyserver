@@ -1,5 +1,5 @@
 #!/usr/bin/python
-'''
+"""
 @file callbackInterface.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
@@ -34,65 +34,64 @@ THE SOFTWARE.
 @section DESCRIPTION
 
 Interfaces for Callback Class.
-'''
+"""
 
 
 # UDP related callback object
 class IUdpCallback(object):
-    def onStarted(self, server):
-        #raise NotImplementedError("Should have implemented this")
+    def on_started(self, server):
+        # raise NotImplementedError("Should have implemented this")
         pass
 
-    def onStopped(self, server):
+    def on_stopped(self, server):
         pass
 
-    def onReceived(self, server, addr, data):
+    def on_received(self, server, addr, data):
         pass
 
-    def onSent(self, server, status, data):
+    def on_sent(self, server, status, data):
         pass
 
     # For Multicast Only
-    def onJoin(self,server, multicastAddress):
+    def on_join(self, server, multicast_addr):
         pass
-        
+
     # For Multicast Only
-    def onLeave(self,server, multicastAddress):
+    def on_leave(self, server, multicast_addr):
         pass
 
 
 # TCP related callback object
 class ITcpSocketCallback(object):
-    def onNewConnection(self, sock, err):
+    def on_newconnection(self, sock, err):
         pass
 
-    def onDisconnect(self, sock):
+    def on_disconnect(self, sock):
         pass
 
-    def onReceived(self, sock, data):
+    def on_received(self, sock, data):
         pass
 
-    def onSent(self, sock, status, data):
+    def on_sent(self, sock, status, data):
         pass
 
 
 class ITcpServerCallback(object):
-    def onStarted(self, server):
+    def on_started(self, server):
         pass
 
-    def onAccepted(self, server, sock):
+    def on_accepted(self, server, sock):
         pass
 
-    def onStopped(self, server):
+    def on_stopped(self, server):
         pass
 
 
 class IAcceptor(object):
     # requires return True or False
-    def onAccept(self, server, addr):
+    def on_accept(self, server, addr):
         raise NotImplementedError("Should have implemented this")
 
     # requires return socket callback object
-    def getSocketCallback(self):
+    def getsocketcallback(self):
         raise NotImplementedError("Should have implemented this")
-

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-'''
+"""
 @file enum.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
@@ -34,7 +34,8 @@ THE SOFTWARE.
 @section DESCRIPTION
 
 Enum Class.
-'''
+"""
 
 
+# noinspection PyPep8
 class Enum(tuple): __getattr__ = tuple.index

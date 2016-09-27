@@ -1,3 +1,4 @@
 MANIFEST
 dist/
 pyserver.egg-info/
+.idea/

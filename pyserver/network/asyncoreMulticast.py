@@ -1,5 +1,5 @@
 #!/usr/bin/python
-'''
+"""
 @file asyncoreMulticast.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
@@ -34,17 +34,9 @@ THE SOFTWARE.
 @section DESCRIPTION
 
 AsyncoreMulticast Class.
-'''
-import asyncore, socket
-from threading import *
-import sys
-import Queue
-from asyncoreController import AsyncoreController
-from inspect import isfunction
+"""
+
 from pyserver.network import *
-import traceback
-from sets import Set
-import copy
 
 IP_MTU_DISCOVER = 10
 IP_PMTUDISC_DONT = 0  # Never send DF frames.
@@ -55,13 +47,13 @@ IP_PMTUDISC_PROBE = 3  # Ignore dst pmtu.
 '''
 Interfaces
 variables
-- callbackObj
+- callback_obj
 functions
-- def send(multicastAddress,port,data)
+- def send(multicast_addr,port,data)
 - def close() # close the socket
-- def join(multicastAddress) # start receiving datagram from given multicast group
-- def leave(multicastAddress) # stop receiving datagram from given multicast group
-- def getGroupList() # get group list
+- def join(multicast_addr) # start receiving datagram from given multicast group
+- def leave(multicast_addr) # stop receiving datagram from given multicast group
+- def getgrouplist() # get group list
 infos
 - multicast address range: 224.0.0.0 - 239.255.255.255
 - linux : route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0 
@@ -70,58 +62,58 @@ infos
 
 
 class AsyncoreMulticast(asyncore.dispatcher):
-    # enableLoopback : 1 enable loopback / 0 disable loopback
+    # enable_loopback : 1 enable loopback / 0 disable loopback
     # ttl: 0 - restricted to the same host
     #      1 - restricted to the same subnet
     #     32 - restricted to the same site
     #     64 - restricted to the same region
     #    128 - restricted to the same continent
     #    255 - unrestricted in scope
-    def __init__(self, port, callbackObj, ttl=1, enableLoopback=False, bindAddress=''):
+    def __init__(self, port, callback_obj, ttl=1, enable_loopback=False, bind_addr=''):
         asyncore.dispatcher.__init__(self)
         # self.lock = threading.RLock()
         self.MAX_MTU = 1500
-        self.callbackObj = None
+        self.callback_obj = None
         self.port = port
         self.multicastSet = Set([])
         self.lock = RLock()
         self.ttl = ttl
-        self.enableLoopback = enableLoopback
-        if callbackObj is not None and isinstance(callbackObj, IUdpCallback):
-            self.callbackObj = callbackObj
+        self.enable_loopback = enable_loopback
+        if callback_obj is not None and isinstance(callback_obj, IUdpCallback):
+            self.callback_obj = callback_obj
         else:
-            raise Exception('callbackObj is None or not an instance of IUdpCallback class')
+            raise Exception('callback_obj is None or not an instance of IUdpCallback class')
         try:
             self.create_socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.set_reuse_addr()
             try:
                 socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             except AttributeError:
-                pass # Some systems don't support SO_REUSEPORT
-            
+                pass  # Some systems don't support SO_REUSEPORT
+
             # for both SENDER and RECEIVER to restrict the region
             self.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, self.ttl)
             # for SENDER to choose whether to use loop back
-            if self.enableLoopback:
+            if self.enable_loopback:
                 self.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
             else:
                 self.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
 
-            self.bindAddress=bindAddress
-            if self.bindAddress is None or self.bindAddress == '':
-                self.bindAddress= socket.gethostbyname(socket.gethostname())
+            self.bind_addr = bind_addr
+            if self.bind_addr is None or self.bind_addr == '':
+                self.bind_addr = socket.gethostbyname(socket.gethostname())
                 # for both SENDER and RECEIVER to bind to specific network adapter
-            self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(self.bindAddress))
+            self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(self.bind_addr))
 
-                # for RECEIVE to receive from multiple multicast groups
+            # for RECEIVE to receive from multiple multicast groups
             self.bind(('', port))
         except Exception as e:
             print e
             traceback.print_exc()
         self.sendQueue = Queue.Queue()  # thread-safe queue
         AsyncoreController.Instance().add(self)
-        if self.callbackObj != None:
-            self.callbackObj.onStarted(self)
+        if self.callback_obj is not None:
+            self.callback_obj.onStarted(self)
 
     # Even though UDP is connectionless this is called when it binds to a port
     def handle_connect(self):
@@ -131,8 +123,8 @@ class AsyncoreMulticast(asyncore.dispatcher):
     def handle_read(self):
         try:
             data, addr = self.recvfrom(self.MAX_MTU)
-            if data and self.callbackObj != None:
-                self.callbackObj.onReceived(self, addr, data)
+            if data and self.callback_obj is not None:
+                self.callback_obj.onReceived(self, addr, data)
         except Exception as e:
             print e
             traceback.print_exc()
@@ -143,19 +135,19 @@ class AsyncoreMulticast(asyncore.dispatcher):
     # This is called all the time and causes errors if you leave it out.
     def handle_write(self):
         if not self.sendQueue.empty():
-            sendObj = self.sendQueue.get()
+            send_obj = self.sendQueue.get()
             state = State.SUCCESS
             try:
-                sent = self.sendto(sendObj['data'], (sendObj['hostname'], sendObj['port']))
-                if sent < len(sendObj['data']):
+                sent = self.sendto(send_obj['data'], (send_obj['hostname'], send_obj['port']))
+                if sent < len(send_obj['data']):
                     state = State.FAIL_SOCKET_ERROR
             except Exception as e:
                 print e
                 traceback.print_exc()
                 state = State.FAIL_SOCKET_ERROR
             try:
-                if self.callbackObj != None:
-                    self.callbackObj.onSent(self, state, sendObj['data'])
+                if self.callback_obj is not None:
+                    self.callback_obj.onSent(self, state, send_obj['data'])
             except Exception as e:
                 print e
                 traceback.print_exc()
@@ -169,12 +161,12 @@ class AsyncoreMulticast(asyncore.dispatcher):
     def handle_close(self):
 
         try:
-            deleteSet = self.getGroupList()
-            for multicastAddress in deleteSet:
+            delete_set = self.getgrouplist()
+            for multicast_addr in delete_set:
                 self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
-                                socket.inet_aton(multicastAddress) + socket.inet_aton('0.0.0.0'))
-                if self.callbackObj != None:
-                    self.callbackObj.onLeave(self,multicastAddress)
+                                socket.inet_aton(multicast_addr) + socket.inet_aton('0.0.0.0'))
+                if self.callback_obj is not None:
+                    self.callback_obj.onLeave(self, multicast_addr)
             with self.lock:
                 self.multicastSet = Set([])
         except Exception as e:
@@ -184,12 +176,13 @@ class AsyncoreMulticast(asyncore.dispatcher):
         asyncore.dispatcher.close(self)
         AsyncoreController.Instance().discard(self)
         try:
-            if self.callbackObj != None:
-                self.callbackObj.onStopped(self)
+            if self.callback_obj is not None:
+                self.callback_obj.onStopped(self)
         except Exception as e:
             print e
             traceback.print_exc()
 
+    # noinspection PyMethodOverriding
     def send(self, hostname, port, data):
         if len(data) <= self.MAX_MTU:
             self.sendQueue.put({'hostname': hostname, 'port': port, 'data': data})
@@ -197,36 +190,36 @@ class AsyncoreMulticast(asyncore.dispatcher):
             raise ValueError("The data size is too large")
 
     # for RECEIVER to receive datagram from the multicast group
-    def join(self, multicastAddress):
+    def join(self, multicast_addr):
         with self.lock:
-            if multicastAddress not in self.multicastSet:
+            if multicast_addr not in self.multicastSet:
                 self.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP,
-                                socket.inet_aton(multicastAddress) + socket.inet_aton(self.bindAddress))
-                self.multicastSet.add(multicastAddress)
-                if self.callbackObj != None:
-                    self.callbackObj.onJoin(self,multicastAddress)
+                                socket.inet_aton(multicast_addr) + socket.inet_aton(self.bind_addr))
+                self.multicastSet.add(multicast_addr)
+                if self.callback_obj is not None:
+                    self.callback_obj.onJoin(self, multicast_addr)
 
     # for RECEIVER to stop receiving datagram from the multicast group
-    def leave(self, multicastAddress):
+    def leave(self, multicast_addr):
         with self.lock:
             try:
-                if multicastAddress in self.multicastSet:
+                if multicast_addr in self.multicastSet:
                     self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
-                                    socket.inet_aton(multicastAddress) + socket.inet_aton('0.0.0.0'))
-                    self.multicastSet.discard(multicastAddress)
-                    if self.callbackObj != None:
-                        self.callbackObj.onLeave(self,multicastAddress)
+                                    socket.inet_aton(multicast_addr) + socket.inet_aton('0.0.0.0'))
+                    self.multicastSet.discard(multicast_addr)
+                    if self.callback_obj is not None:
+                        self.callback_obj.onLeave(self, multicast_addr)
             except Exception as e:
                 print e
 
-    def getGroupList(self):
+    def getgrouplist(self):
         with self.lock:
             return copy.copy(self.multicastSet)
 
     def gethostbyname(self, arg):
         return self.socket.gethostbyname(arg)
 
-    def gethostname():
+    def gethostname(self):
         return self.socket.gethostname()
 
 # Echo udp server test

@@ -1,8 +1,8 @@
 #!/usr/bin/python
-'''
+"""
 @file singleton.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
-		<http://github.com/juhgiyo/pyserver>
+        <http://github.com/juhgiyo/pyserver>
 @date March 10, 2016
 @brief Singlton Interface
 @version 0.1
@@ -34,9 +34,8 @@ THE SOFTWARE.
 @section DESCRIPTION
 
 Singlton Class.
-'''
+"""
 import threading
-import time
 
 
 class Singleton:
@@ -49,7 +48,7 @@ class Singleton:
     takes only the `self` argument. Other than that, there are
     no restrictions that apply to the decorated class.
 
-    To get the singleton instance, use the `Instance` method. Trying
+    To get the singleton instance, use the `instance` method. Trying
     to use `__call__` will result in a `TypeError` being raised.
 
     Limitations: The decorated class cannot be inherited from.
@@ -60,7 +59,7 @@ class Singleton:
         self._decorated = decorated
         self.lock = threading.RLock()
 
-    def Instance(self):
+    def instance(self):
         """
         Returns the singleton instance. Upon its first call, it creates a
         new instance of the decorated class and calls its `__init__` method.
@@ -71,11 +70,12 @@ class Singleton:
             try:
                 return self._instance
             except AttributeError:
+                # noinspection PyAttributeOutsideInit
                 self._instance = self._decorated()
                 return self._instance
 
     def __call__(self):
-        raise TypeError('Singletons must be accessed through `Instance()`.')
+        raise TypeError('Singletons must be accessed through `instance()`.')
 
     def __instancecheck__(self, inst):
         return isinstance(inst, self._decorated)
