@@ -37,7 +37,7 @@ SubProcController Class.
 """
 from threading import *
 
-from util.singleton import Singleton
+from singleton import Singleton
 # noinspection PyDeprecation
 import traceback
 import copy
@@ -102,4 +102,4 @@ class SubProcController(object):
                 print e
                 traceback.print_exc()
 
-# foo = SubProcController.Instance()
+# foo = SubProcController.instance()

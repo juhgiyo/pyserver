@@ -122,7 +122,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
             print e
             traceback.print_exc()
         self.sendQueue = Queue.Queue()  # thread-safe queue
-        AsyncoreController.Instance().add(self)
+        AsyncoreController.instance().add(self)
         if self.callback_obj is not None:
             self.callback_obj.on_started(self)
 
@@ -185,7 +185,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
 
         print 'asyncoreUdp close called'
         asyncore.dispatcher.close(self)
-        AsyncoreController.Instance().discard(self)
+        AsyncoreController.instance().discard(self)
         try:
             if self.callback_obj is not None:
                 self.callback_obj.on_stopped(self)

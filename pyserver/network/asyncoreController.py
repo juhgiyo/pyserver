@@ -38,7 +38,7 @@ AsyncoreController Class.
 import asyncore
 from threading import *
 
-from util.singleton import Singleton
+from pyserver.util.singleton import Singleton
 # noinspection PyDeprecation
 from sets import Set
 import traceback
@@ -107,4 +107,4 @@ class AsyncoreController(Thread):
             if len(self.moduleSet) == 0 and not self.shouldStopEvent.is_set():
                 self.hasModuleEvent.clear()
 
-# foo = AsyncoreController.Instance()
+# foo = AsyncoreController.instance()

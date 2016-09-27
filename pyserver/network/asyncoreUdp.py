@@ -80,7 +80,7 @@ class AsyncoreUDP(asyncore.dispatcher):
             print e
             traceback.print_exc()
         self.sendQueue = Queue.Queue()  # thread-safe queue
-        AsyncoreController.Instance().add(self)
+        AsyncoreController.instance().add(self)
         if self.callback is not None:
             self.callback.on_started(self)
 
@@ -130,7 +130,7 @@ class AsyncoreUDP(asyncore.dispatcher):
     def handle_close(self):
         print 'asyncoreUdp close called'
         asyncore.dispatcher.close(self)
-        AsyncoreController.Instance().discard(self)
+        AsyncoreController.instance().discard(self)
         try:
             if self.callback is not None:
                 self.callback.on_stopped(self)

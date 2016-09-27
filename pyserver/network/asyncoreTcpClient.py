@@ -81,7 +81,7 @@ class AsyncoreTcpClient(asyncore.dispatcher):
         err = None
         try:
             self.connect((hostname, port))
-            AsyncoreController.Instance().add(self)
+            AsyncoreController.instance().add(self)
         except Exception as e:
             err = e
         finally:
@@ -164,7 +164,7 @@ class AsyncoreTcpClient(asyncore.dispatcher):
         try:
             self.isClosing = True
             asyncore.dispatcher.close(self)
-            AsyncoreController.Instance().discard(self)
+            AsyncoreController.instance().discard(self)
             if self.callback is not None:
                 self.callback.on_disconnect(self)
         except Exception as e:

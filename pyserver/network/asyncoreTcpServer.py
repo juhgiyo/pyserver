@@ -75,7 +75,7 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
         self.sendQueue = deque()  # thread-safe queue
         if self.server.no_delay:
             self.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        AsyncoreController.Instance().add(self)
+        AsyncoreController.instance().add(self)
         if callback is not None:
             self.callback.on_newconnection(self, None)
 
@@ -149,8 +149,8 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
             print 'asyncoreTcpSocket close called'
             self.isClosing = True
             asyncore.dispatcher.close(self)
-            self.server.discardSocket(self)
-            AsyncoreController.Instance().discard(self)
+            self.server.discard_socket(self)
+            AsyncoreController.instance().discard(self)
             if self.callback is not None:
                 self.callback.on_disconnect(self)
         except Exception as e:
@@ -203,7 +203,7 @@ class AsyncoreTcpServer(asyncore.dispatcher):
         self.bind((bind_addr, port))
         self.listen(5)
 
-        AsyncoreController.Instance().add(self)
+        AsyncoreController.instance().add(self)
         if self.callback is not None:
             self.callback.on_started(self)
 
@@ -243,7 +243,7 @@ class AsyncoreTcpServer(asyncore.dispatcher):
                     item.close()
                 self.sockSet = Set([])
             asyncore.dispatcher.close(self)
-            AsyncoreController.Instance().discard(self)
+            AsyncoreController.instance().discard(self)
             if self.callback is not None:
                 self.callback.on_stopped(self)
         except Exception as e:
