@@ -59,7 +59,7 @@ class Singleton:
         self._decorated = decorated
         self.lock = threading.RLock()
 
-    def instance(self):
+    def Instance(self):
         """
         Returns the singleton instance. Upon its first call, it creates a
         new instance of the decorated class and calls its `__init__` method.
