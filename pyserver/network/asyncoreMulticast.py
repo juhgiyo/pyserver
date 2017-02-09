@@ -40,7 +40,7 @@ import Queue
 import asyncore
 import socket
 import traceback
-from threading import *
+import threading
 
 from serverConf import *
 from callbackInterface import *
@@ -87,7 +87,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
         self.callback_obj = None
         self.port = port
         self.multicastSet = Set([])
-        self.lock = RLock()
+        self.lock = threading.RLock()
         self.ttl = ttl
         self.enable_loopback = enable_loopback
         if callback_obj is not None and isinstance(callback_obj, IUdpCallback):

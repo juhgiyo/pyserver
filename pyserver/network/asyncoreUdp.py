@@ -79,7 +79,7 @@ class AsyncoreUDP(asyncore.dispatcher):
         except Exception as e:
             print e
             traceback.print_exc()
-        self.sendQueue = Queue.Queue()  # thread-safe queue
+        self.send_queue = Queue.Queue()  # thread-safe queue
         AsyncoreController.instance().add(self)
         if self.callback is not None:
             self.callback.on_started(self)
@@ -99,12 +99,12 @@ class AsyncoreUDP(asyncore.dispatcher):
             traceback.print_exc()
 
     def writable(self):
-        return not self.sendQueue.empty()
+        return not self.send_queue.empty()
 
     # This is called all the time and causes errors if you leave it out.
     def handle_write(self):
-        if not self.sendQueue.empty():
-            send_obj = self.sendQueue.get()
+        if not self.send_queue.empty():
+            send_obj = self.send_queue.get()
             state = State.SUCCESS
             try:
                 sent = self.sendto(send_obj['data'], (send_obj['hostname'], send_obj['port']))
@@ -141,7 +141,7 @@ class AsyncoreUDP(asyncore.dispatcher):
     # noinspection PyMethodOverriding
     def send(self, hostname, port, data):
         if len(data) <= self.MAX_MTU:
-            self.sendQueue.put({'hostname': hostname, 'port': port, 'data': data})
+            self.send_queue.put({'hostname': hostname, 'port': port, 'data': data})
         else:
             raise ValueError("The data size is too large")
 

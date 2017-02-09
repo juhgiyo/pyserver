@@ -64,7 +64,7 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
     def __init__(self, server, sock, addr, callback):
         asyncore.dispatcher.__init__(self, sock)
         self.server = server
-        self.isClosing = False
+        self.is_closing = False
         self.callback = None
         if callback is not None and isinstance(callback, ITcpSocketCallback):
             self.callback = callback
@@ -72,7 +72,7 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
             raise Exception('callback is None or not an instance of ITcpSocketCallback class')
         self.addr = addr
         self.transport = {'packet': None, 'type': PacketType.SIZE, 'size': SIZE_PACKET_LENGTH, 'offset': 0}
-        self.sendQueue = deque()  # thread-safe queue
+        self.send_queue = deque()  # thread-safe queue
         if self.server.no_delay:
             self.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         AsyncoreController.instance().add(self)
@@ -113,17 +113,17 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
             traceback.print_exc()
 
     def writable(self):
-        return len(self.sendQueue) != 0
+        return len(self.send_queue) != 0
 
     def handle_write(self):
-        if len(self.sendQueue) != 0:
-            send_obj = self.sendQueue.popleft()
+        if len(self.send_queue) != 0:
+            send_obj = self.send_queue.popleft()
             state = State.SUCCESS
             try:
                 sent = asyncore.dispatcher.send(self, send_obj['data'][send_obj['offset']:])
                 if sent < len(send_obj['data']):
                     send_obj['offset'] = send_obj['offset'] + sent
-                    self.sendQueue.appendLeft(send_obj)
+                    self.send_queue.appendLeft(send_obj)
                     return
             except Exception as e:
                 print e
@@ -137,17 +137,17 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
                 traceback.print_exc()
 
     def close(self):
-        if not self.isClosing:
+        if not self.is_closing:
             self.handle_close()
 
     def handle_error(self):
-        if not self.isClosing:
+        if not self.is_closing:
             self.handle_close()
 
     def handle_close(self):
         try:
             print 'asyncoreTcpSocket close called'
-            self.isClosing = True
+            self.is_closing = True
             asyncore.dispatcher.close(self)
             self.server.discard_socket(self)
             AsyncoreController.instance().discard(self)
@@ -158,7 +158,7 @@ class AsyncoreTcpSocket(asyncore.dispatcher):
             traceback.print_exc()
 
     def send(self, data):
-        self.sendQueue.append({'data': Preamble.to_preamble_packet(len(data)) + data, 'offset': 0})
+        self.send_queue.append({'data': Preamble.to_preamble_packet(len(data)) + data, 'offset': 0})
 
     def gethostbyname(self, arg):
         return self.socket.gethostbyname(arg)
@@ -182,9 +182,9 @@ functions
 class AsyncoreTcpServer(asyncore.dispatcher):
     def __init__(self, port, callback, acceptor, bind_addr='', no_delay=True):
         asyncore.dispatcher.__init__(self)
-        self.isClosing = False
+        self.is_closing = False
         self.lock = threading.RLock()
-        self.sockSet = Set([])
+        self.sock_set = Set([])
 
         self.acceptor = None
         if acceptor is not None and isinstance(acceptor, IAcceptor):
@@ -218,7 +218,7 @@ class AsyncoreTcpServer(asyncore.dispatcher):
                     sockcallback = self.acceptor.get_socket_callback()
                     sock_obj = AsyncoreTcpSocket(self, sock, addr, sockcallback)
                     with self.lock:
-                        self.sockSet.add(sock_obj)
+                        self.sock_set.add(sock_obj)
                     if self.callback is not None:
                         self.callback.on_accepted(self, sock_obj)
         except Exception as e:
@@ -226,22 +226,22 @@ class AsyncoreTcpServer(asyncore.dispatcher):
             traceback.print_exc()
 
     def close(self):
-        if not self.isClosing:
+        if not self.is_closing:
             self.handle_close()
 
     def handle_error(self):
-        if not self.isClosing:
+        if not self.is_closing:
             self.handle_close()
 
     def handle_close(self):
         try:
             print 'asyncoreTcpServer close called'
-            self.isClosing = True
+            self.is_closing = True
             with self.lock:
-                delete_set = copy.copy(self.sockSet)
+                delete_set = copy.copy(self.sock_set)
                 for item in delete_set:
                     item.close()
-                self.sockSet = Set([])
+                self.sock_set = Set([])
             asyncore.dispatcher.close(self)
             AsyncoreController.instance().discard(self)
             if self.callback is not None:
@@ -253,15 +253,15 @@ class AsyncoreTcpServer(asyncore.dispatcher):
     def discard_socket(self, sock):
         print 'asyncoreTcpServer discard socket called'
         with self.lock:
-            self.sockSet.discard(sock)
+            self.sock_set.discard(sock)
 
     def shutdown_all(self):
         with self.lock:
-            delete_set = copy.copy(self.sockSet)
+            delete_set = copy.copy(self.sock_set)
             for item in delete_set:
                 item.close()
-            self.sockSet = Set([])
+            self.sock_set = Set([])
 
     def get_socket_list(self):
         with self.lock:
-            return list(self.sockSet)
+            return list(self.sock_set)

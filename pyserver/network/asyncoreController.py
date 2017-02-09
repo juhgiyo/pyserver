@@ -36,7 +36,7 @@ THE SOFTWARE.
 AsyncoreController Class.
 """
 import asyncore
-from threading import *
+import threading
 
 from pyserver.util.singleton import Singleton
 # noinspection PyDeprecation
@@ -46,65 +46,65 @@ import copy
 
 
 @Singleton
-class AsyncoreController(Thread):
+class AsyncoreController(threading.Thread):
     def __init__(self):
-        Thread.__init__(self)
-        self.shouldStopEvent = Event()
-        self.hasModuleEvent = Event()
-        self.lock = RLock()
-        self.moduleSet = Set([])
+        threading.Thread.__init__(self)
+        self.should_stop_event = threading.Event()
+        self.has_module_event = threading.Event()
+        self.lock = threading.RLock()
+        self.module_set = Set([])
         self.timeout = 0.1
 
         # Self start the thread
         self.start()
 
     def run(self):
-        while not self.shouldStopEvent.is_set():
+        while not self.should_stop_event.is_set():
             try:
                 asyncore.loop(timeout=self.timeout)
             except Exception as e:
                 print e
                 traceback.print_exc()
-            self.hasModuleEvent.wait()
-        self.hasModuleEvent.clear()
+            self.has_module_event.wait()
+        self.has_module_event.clear()
         print 'asyncore Thread exiting...'
 
     def stop(self):
         with self.lock:
-            delete_set = copy.copy(self.moduleSet)
+            delete_set = copy.copy(self.module_set)
             for item in delete_set:
                 try:
                     item.close()
                 except Exception as e:
                     print e
                     traceback.print_exc()
-            self.moduleSet = Set([])
-        self.shouldStopEvent.set()
-        self.hasModuleEvent.set()
+            self.module_set = Set([])
+        self.should_stop_event.set()
+        self.has_module_event.set()
 
     def add(self, module):
         with self.lock:
-            self.moduleSet.add(module)
-        self.hasModuleEvent.set()
+            self.module_set.add(module)
+        self.has_module_event.set()
 
     def clear(self):
         with self.lock:
-            delete_set = copy.copy(self.moduleSet)
+            delete_set = copy.copy(self.module_set)
             for item in delete_set:
                 try:
                     item.close()
                 except Exception as e:
                     print e
                     traceback.print_exc()
-            self.moduleSet = Set([])
-        if not self.shouldStopEvent.is_set():
-            self.hasModuleEvent.clear()
+            self.module_set = Set([])
+        if not self.should_stop_event.is_set():
+            self.has_module_event.clear()
 
     def discard(self, module):
         print 'asyncoreController discard called'
         with self.lock:
-            self.moduleSet.discard(module)
-            if len(self.moduleSet) == 0 and not self.shouldStopEvent.is_set():
-                self.hasModuleEvent.clear()
+            self.module_set.discard(module)
+            if len(self.module_set) == 0 and not self.should_stop_event.is_set():
+                self.has_module_event.clear()
 
 # foo = AsyncoreController.instance()

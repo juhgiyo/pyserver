@@ -35,7 +35,7 @@ THE SOFTWARE.
 
 SubProcController Class.
 """
-from threading import *
+import threading
 
 from singleton import Singleton
 # noinspection PyDeprecation
@@ -48,25 +48,25 @@ import os
 @Singleton
 class SubProcController(object):
     def __init__(self):
-        self.lock = RLock()
-        self.subProcDict = {}
+        self.lock = threading.RLock()
+        self.sub_proc_map = {}
 
     def kill_all(self):
         with self.lock:
-            delete_set = copy.copy(self.subProcDict)
+            delete_set = copy.copy(self.sub_proc_map)
             for key in delete_set:
                 try:
-                    self.subProcDict[key].terminate()
+                    self.sub_proc_map[key].terminate()
                     print key, ' terminating...'
                 except Exception as e:
                     print e
                     traceback.print_exc()
-            self.subProcDict = {}
+            self.sub_proc_map = {}
 
     def create_subprocess(self, proc_name, arg):
         proc = None
         with self.lock:
-            if proc_name in self.subProcDict:
+            if proc_name in self.sub_proc_map:
                 raise Exception('proc_name already exists!')
             try:
                 def preexec_function():
@@ -75,7 +75,7 @@ class SubProcController(object):
                 proc = subprocess.Popen(arg
                                         , preexec_fn=preexec_function
                                         )
-                self.subProcDict[proc_name] = proc
+                self.sub_proc_map[proc_name] = proc
             except Exception as e:
                 print e
                 traceback.print_exc()
@@ -86,18 +86,18 @@ class SubProcController(object):
         with self.lock:
             try:
                 if isinstance(proc_name, str):
-                    if proc_name in self.subProcDict:
-                        self.subProcDict[proc_name].terminate()
-                        del self.subProcDict[proc_name]
+                    if proc_name in self.sub_proc_map:
+                        self.sub_proc_map[proc_name].terminate()
+                        del self.sub_proc_map[proc_name]
                 else:
                     delete_key = None
-                    for key in self.subProcDict:
-                        if self.subProcDict[key] == proc_name:
-                            self.subProcDict[key].terminate()
+                    for key in self.sub_proc_map:
+                        if self.sub_proc_map[key] == proc_name:
+                            self.sub_proc_map[key].terminate()
                             delete_key = key
                             break
                     if delete_key is not None:
-                        del self.subProcDict[delete_key]
+                        del self.sub_proc_map[delete_key]
             except Exception as e:
                 print e
                 traceback.print_exc()
