@@ -37,7 +37,7 @@ call set_sigterm() to terminate the python with Ctrl+C
 """
 import signal
 
-from pyserver.network.asyncController import AsyncController
+from pyserver.network.asyncoreController import AsyncoreController
 
 from subProcController import *
 
@@ -49,8 +49,8 @@ def set_sigterm(signal_event=None):
     # noinspection PyUnusedLocal
     def handler(signum, frame):
         print 'Ctrl+C detected!'
-        AsyncController.instance().stop()
-        AsyncController.instance().join()
+        AsyncoreController.instance().stop()
+        AsyncoreController.instance().join()
         SubProcController.instance().kill_all()
 
         if not signal_triggered[0] and signal_event is not None:

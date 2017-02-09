@@ -1,10 +1,10 @@
 #!/usr/bin/python
 """
-@file asyncController.py
+@file asyncoreController.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
 @date March 10, 2016
-@brief AsyncController Interface
+@brief AsyncoreController Interface
 @version 0.1
 
 @section LICENSE
@@ -33,7 +33,7 @@ THE SOFTWARE.
 
 @section DESCRIPTION
 
-AsyncController Class.
+AsyncoreController Class.
 """
 import asyncore
 from threading import *
@@ -46,7 +46,7 @@ import copy
 
 
 @Singleton
-class AsyncController(Thread):
+class AsyncoreController(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.shouldStopEvent = Event()
@@ -61,13 +61,13 @@ class AsyncController(Thread):
     def run(self):
         while not self.shouldStopEvent.is_set():
             try:
-                async.loop(timeout=self.timeout)
+                asyncore.loop(timeout=self.timeout)
             except Exception as e:
                 print e
                 traceback.print_exc()
             self.hasModuleEvent.wait()
         self.hasModuleEvent.clear()
-        print 'async Thread exiting...'
+        print 'asyncore Thread exiting...'
 
     def stop(self):
         with self.lock:
@@ -101,10 +101,10 @@ class AsyncController(Thread):
             self.hasModuleEvent.clear()
 
     def discard(self, module):
-        print 'asyncController discard called'
+        print 'asyncoreController discard called'
         with self.lock:
             self.moduleSet.discard(module)
             if len(self.moduleSet) == 0 and not self.shouldStopEvent.is_set():
                 self.hasModuleEvent.clear()
 
-# foo = AsyncController.instance()
+# foo = AsyncoreController.instance()
