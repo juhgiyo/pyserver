@@ -60,9 +60,9 @@ function
 '''
 
 
-class AsyncTcpSocket(async.dispatcher):
+class AsyncTcpSocket(asyncore.dispatcher):
     def __init__(self, server, sock, addr, callback):
-        async.dispatcher.__init__(self, sock)
+        asyncore.dispatcher.__init__(self, sock)
         self.server = server
         self.is_closing = False
         self.callback = None
@@ -120,7 +120,7 @@ class AsyncTcpSocket(async.dispatcher):
             send_obj = self.send_queue.popleft()
             state = State.SUCCESS
             try:
-                sent = async.dispatcher.send(self, send_obj['data'][send_obj['offset']:])
+                sent = asyncore.dispatcher.send(self, send_obj['data'][send_obj['offset']:])
                 if sent < len(send_obj['data']):
                     send_obj['offset'] = send_obj['offset'] + sent
                     self.send_queue.appendLeft(send_obj)
@@ -148,7 +148,7 @@ class AsyncTcpSocket(async.dispatcher):
         try:
             print 'asyncTcpSocket close called'
             self.is_closing = True
-            async.dispatcher.close(self)
+            asyncore.dispatcher.close(self)
             self.server.discard_socket(self)
             AsyncController.instance().discard(self)
             if self.callback is not None:
@@ -179,9 +179,9 @@ functions
 '''
 
 
-class AsyncTcpServer(async.dispatcher):
+class AsyncTcpServer(asyncore.dispatcher):
     def __init__(self, port, callback, acceptor, bind_addr='', no_delay=True):
-        async.dispatcher.__init__(self)
+        asyncore.dispatcher.__init__(self)
         self.is_closing = False
         self.lock = threading.RLock()
         self.sock_set = Set([])
@@ -242,7 +242,7 @@ class AsyncTcpServer(async.dispatcher):
                 for item in delete_set:
                     item.close()
                 self.sock_set = Set([])
-            async.dispatcher.close(self)
+            asyncore.dispatcher.close(self)
             AsyncController.instance().discard(self)
             if self.callback is not None:
                 self.callback.on_stopped(self)

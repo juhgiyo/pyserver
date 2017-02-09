@@ -59,9 +59,9 @@ functions
 '''
 
 
-class AsyncTcpClient(async.dispatcher):
+class AsyncTcpClient(asyncore.dispatcher):
     def __init__(self, hostname, port, callback, no_delay=True):
-        async.dispatcher.__init__(self)
+        asyncore.dispatcher.__init__(self)
         self.is_closing = False
         self.callback = None
         if callback is not None and isinstance(callback, ITcpSocketCallback):
@@ -136,7 +136,7 @@ class AsyncTcpClient(async.dispatcher):
             send_obj = self.send_queue.popleft()
             state = State.SUCCESS
             try:
-                sent = async.dispatcher.send(self, send_obj['data'][send_obj['offset']:])
+                sent = asyncore.dispatcher.send(self, send_obj['data'][send_obj['offset']:])
                 if sent < len(send_obj['data']):
                     send_obj['offset'] = send_obj['offset'] + sent
                     self.send_queue.appendLeft(send_obj)
@@ -163,7 +163,7 @@ class AsyncTcpClient(async.dispatcher):
     def handle_close(self):
         try:
             self.is_closing = True
-            async.dispatcher.close(self)
+            asyncore.dispatcher.close(self)
             AsyncController.instance().discard(self)
             if self.callback is not None:
                 self.callback.on_disconnect(self)

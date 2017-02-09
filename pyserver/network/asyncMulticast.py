@@ -72,7 +72,7 @@ infos
 '''
 
 
-class AsyncMulticast(async.dispatcher):
+class AsyncMulticast(asyncore.dispatcher):
     # enable_loopback : 1 enable loopback / 0 disable loopback
     # ttl: 0 - restricted to the same host
     #      1 - restricted to the same subnet
@@ -81,7 +81,7 @@ class AsyncMulticast(async.dispatcher):
     #    128 - restricted to the same continent
     #    255 - unrestricted in scope
     def __init__(self, port, callback_obj, ttl=1, enable_loopback=False, bind_addr=''):
-        async.dispatcher.__init__(self)
+        asyncore.dispatcher.__init__(self)
         # self.lock = threading.RLock()
         self.MAX_MTU = 1500
         self.callback_obj = None
@@ -184,7 +184,7 @@ class AsyncMulticast(async.dispatcher):
             print e
 
         print 'asyncUdp close called'
-        async.dispatcher.close(self)
+        asyncore.dispatcher.close(self)
         AsyncController.instance().discard(self)
         try:
             if self.callback_obj is not None:

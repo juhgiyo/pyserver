@@ -59,9 +59,9 @@ functions
 '''
 
 
-class AsyncUDP(async.dispatcher):
+class AsyncUDP(asyncore.dispatcher):
     def __init__(self, port, callback, bindaddress=''):
-        async.dispatcher.__init__(self)
+        asyncore.dispatcher.__init__(self)
         # self.lock = threading.RLock()
         self.MAX_MTU = 1500
         self.callback = None
@@ -129,7 +129,7 @@ class AsyncUDP(async.dispatcher):
 
     def handle_close(self):
         print 'asyncUdp close called'
-        async.dispatcher.close(self)
+        asyncore.dispatcher.close(self)
         AsyncController.instance().discard(self)
         try:
             if self.callback is not None:
