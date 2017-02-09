@@ -1,10 +1,10 @@
 #!/usr/bin/python
 """
-@file asyncoreUDP.py
+@file asyncUDP.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
 @date March 10, 2016
-@brief AsyncoreUDP Interface
+@brief AsyncUDP Interface
 @version 0.1
 
 @section LICENSE
@@ -33,7 +33,7 @@ THE SOFTWARE.
 
 @section DESCRIPTION
 
-AsyncoreUDP Class.
+AsyncUDP Class.
 """
 import Queue
 import asyncore
@@ -41,7 +41,7 @@ import socket
 import traceback
 from callbackInterface import *
 from serverConf import *
-from asyncoreController import AsyncoreController
+from asyncController import AsyncController
 
 IP_MTU_DISCOVER = 10
 IP_PMTUDISC_DONT = 0  # Never send DF frames.
@@ -59,9 +59,9 @@ functions
 '''
 
 
-class AsyncoreUDP(asyncore.dispatcher):
+class AsyncUDP(async.dispatcher):
     def __init__(self, port, callback, bindaddress=''):
-        asyncore.dispatcher.__init__(self)
+        async.dispatcher.__init__(self)
         # self.lock = threading.RLock()
         self.MAX_MTU = 1500
         self.callback = None
@@ -80,7 +80,7 @@ class AsyncoreUDP(asyncore.dispatcher):
             print e
             traceback.print_exc()
         self.send_queue = Queue.Queue()  # thread-safe queue
-        AsyncoreController.instance().add(self)
+        AsyncController.instance().add(self)
         if self.callback is not None:
             self.callback.on_started(self)
 
@@ -128,9 +128,9 @@ class AsyncoreUDP(asyncore.dispatcher):
         self.handle_close()
 
     def handle_close(self):
-        print 'asyncoreUdp close called'
-        asyncore.dispatcher.close(self)
-        AsyncoreController.instance().discard(self)
+        print 'asyncUdp close called'
+        async.dispatcher.close(self)
+        AsyncController.instance().discard(self)
         try:
             if self.callback is not None:
                 self.callback.on_stopped(self)
@@ -170,4 +170,4 @@ class AsyncoreUDP(asyncore.dispatcher):
 # Echo udp server test
 # def readHandle(sock,addr, data):
 #   sock.send(addr[0],addr[1],data)
-# server=AsyncoreUDP(5005,readHandle)
+# server=AsyncUDP(5005,readHandle)
