@@ -1,10 +1,10 @@
 #!/usr/bin/python
 """
-@file asyncoreMulticast.py
+@file asyncMulticast.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
 @date March 10, 2016
-@brief AsyncoreMulticast Interface
+@brief AsyncMulticast Interface
 @version 0.1
 
 @section LICENSE
@@ -33,7 +33,7 @@ THE SOFTWARE.
 
 @section DESCRIPTION
 
-AsyncoreMulticast Class.
+AsyncMulticast Class.
 """
 
 import Queue
@@ -44,7 +44,7 @@ from threading import *
 
 from serverConf import *
 from callbackInterface import *
-from asyncoreController import AsyncoreController
+from asyncController import AsyncController
 # noinspection PyDeprecation
 from sets import Set
 import copy
@@ -72,7 +72,7 @@ infos
 '''
 
 
-class AsyncoreMulticast(asyncore.dispatcher):
+class AsyncMulticast(async.dispatcher):
     # enable_loopback : 1 enable loopback / 0 disable loopback
     # ttl: 0 - restricted to the same host
     #      1 - restricted to the same subnet
@@ -81,7 +81,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
     #    128 - restricted to the same continent
     #    255 - unrestricted in scope
     def __init__(self, port, callback_obj, ttl=1, enable_loopback=False, bind_addr=''):
-        asyncore.dispatcher.__init__(self)
+        async.dispatcher.__init__(self)
         # self.lock = threading.RLock()
         self.MAX_MTU = 1500
         self.callback_obj = None
@@ -122,7 +122,7 @@ class AsyncoreMulticast(asyncore.dispatcher):
             print e
             traceback.print_exc()
         self.sendQueue = Queue.Queue()  # thread-safe queue
-        AsyncoreController.instance().add(self)
+        AsyncController.instance().add(self)
         if self.callback_obj is not None:
             self.callback_obj.on_started(self)
 
@@ -183,9 +183,9 @@ class AsyncoreMulticast(asyncore.dispatcher):
         except Exception as e:
             print e
 
-        print 'asyncoreUdp close called'
-        asyncore.dispatcher.close(self)
-        AsyncoreController.instance().discard(self)
+        print 'asyncUdp close called'
+        async.dispatcher.close(self)
+        AsyncController.instance().discard(self)
         try:
             if self.callback_obj is not None:
                 self.callback_obj.on_stopped(self)
@@ -236,4 +236,4 @@ class AsyncoreMulticast(asyncore.dispatcher):
 # Echo udp server test
 # def readHandle(sock,addr, data):
 #   sock.send(addr[0],addr[1],data)
-# server=AsyncoreUDP(5005,readHandle)
+# server=AsyncUDP(5005,readHandle)
