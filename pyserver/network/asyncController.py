@@ -53,7 +53,7 @@ class AsyncController(threading.Thread):
         self.has_module_event = threading.Event()
         self.lock = threading.RLock()
         self.module_set = Set([])
-        self.timeout = 0.1
+        self.timeout = 0.01
 
         # Self start the thread
         self.start()
