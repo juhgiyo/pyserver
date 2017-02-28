@@ -139,7 +139,7 @@ class AsyncTcpClient(asyncore.dispatcher):
                 sent = asyncore.dispatcher.send(self, send_obj['data'][send_obj['offset']:])
                 if sent < len(send_obj['data']):
                     send_obj['offset'] = send_obj['offset'] + sent
-                    self.send_queue.appendLeft(send_obj)
+                    self.send_queue.appendleft(send_obj)
                     return
             except Exception as e:
                 print e
