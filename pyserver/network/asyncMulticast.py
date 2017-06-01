@@ -140,8 +140,8 @@ class AsyncMulticast(asyncore.dispatcher):
             print e
             traceback.print_exc()
 
-    def writable(self):
-        return not self.sendQueue.empty()
+    #def writable(self):
+    #    return not self.sendQueue.empty()
 
     # This is called all the time and causes errors if you leave it out.
     def handle_write(self):

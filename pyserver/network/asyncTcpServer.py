@@ -112,8 +112,8 @@ class AsyncTcpSocket(asyncore.dispatcher):
             print e
             traceback.print_exc()
 
-    def writable(self):
-        return len(self.send_queue) != 0
+    #def writable(self):
+    #    return len(self.send_queue) != 0
 
     def handle_write(self):
         if len(self.send_queue) != 0:
