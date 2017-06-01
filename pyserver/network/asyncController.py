@@ -56,7 +56,7 @@ class AsyncController(threading.Thread):
         self.timeout = 0.01
 
         # Self start the thread
-        self.start()
+        # self.start()
 
     def run(self):
         while not self.should_stop_event.is_set():
