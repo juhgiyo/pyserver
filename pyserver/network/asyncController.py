@@ -56,13 +56,13 @@ class AsyncController(threading.Thread):
         self.timeout = 0.01
 
         # Self start the thread
-        # self.start()
+        self.start()
 
     def run(self):
         while not self.should_stop_event.is_set():
             try:
-                #asyncore.loop(timeout=self.timeout)
-                asyncore.loop()
+                asyncore.loop(timeout=self.timeout)
+                #asyncore.loop()
             except Exception as e:
                 print e
                 traceback.print_exc()
