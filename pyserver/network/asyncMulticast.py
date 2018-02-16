@@ -37,9 +37,9 @@ AsyncMulticast Class.
 """
 
 try:
-    import Queue
+    from Queue import Queue
 except ImportError:
-    from collections import queue
+    from queue import Queue
 
 import asyncore
 import socket
@@ -130,7 +130,7 @@ class AsyncMulticast(asyncore.dispatcher):
         except Exception as e:
             print(e)
             traceback.print_exc()
-        self.sendQueue = Queue.Queue()  # thread-safe queue
+        self.sendQueue = Queue()  # thread-safe queue
         AsyncController.instance().add(self)
         if self.callback_obj is not None:
             self.callback_obj.on_started(self)
