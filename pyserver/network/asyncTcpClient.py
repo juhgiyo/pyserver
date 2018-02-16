@@ -76,7 +76,7 @@ class AsyncTcpClient(asyncore.dispatcher):
 
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         if no_delay:
-            self.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.set_reuse_addr()
         err = None
         try:

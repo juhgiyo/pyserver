@@ -107,23 +107,23 @@ class AsyncMulticast(asyncore.dispatcher):
             self.create_socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.set_reuse_addr()
             try:
-                socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+                self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             except AttributeError:
                 pass  # Some systems don't support SO_REUSEPORT
 
             # for both SENDER and RECEIVER to restrict the region
-            self.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, self.ttl)
+            self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, self.ttl)
             # for SENDER to choose whether to use loop back
             if self.enable_loopback:
-                self.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
+                self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
             else:
-                self.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
+                self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
 
             self.bind_addr = bind_addr
             if self.bind_addr is None or self.bind_addr == '':
                 self.bind_addr = socket.gethostbyname(socket.gethostname())
                 # for both SENDER and RECEIVER to bind to specific network adapter
-            self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(self.bind_addr))
+            self.socket.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(self.bind_addr))
 
             # for RECEIVE to receive from multiple multicast groups
             self.bind(('', port))
@@ -183,7 +183,7 @@ class AsyncMulticast(asyncore.dispatcher):
         try:
             delete_set = self.getgrouplist()
             for multicast_addr in delete_set:
-                self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
+                self.socket.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
                                 socket.inet_aton(multicast_addr) + socket.inet_aton('0.0.0.0'))
                 if self.callback_obj is not None:
                     self.callback_obj.on_leave(self, multicast_addr)
@@ -213,7 +213,7 @@ class AsyncMulticast(asyncore.dispatcher):
     def join(self, multicast_addr):
         with self.lock:
             if multicast_addr not in self.multicastSet:
-                self.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP,
+                self.socket.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP,
                                 socket.inet_aton(multicast_addr) + socket.inet_aton(self.bind_addr))
                 self.multicastSet.add(multicast_addr)
                 if self.callback_obj is not None:
@@ -224,7 +224,7 @@ class AsyncMulticast(asyncore.dispatcher):
         with self.lock:
             try:
                 if multicast_addr in self.multicastSet:
-                    self.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
+                    self.socket.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
                                     socket.inet_aton(multicast_addr) + socket.inet_aton('0.0.0.0'))
                     self.multicastSet.discard(multicast_addr)
                     if self.callback_obj is not None:

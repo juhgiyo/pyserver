@@ -76,8 +76,9 @@ class AsyncUDP(asyncore.dispatcher):
             raise Exception('callback is None or not an instance of IUdpCallback class')
         try:
             self.create_socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            # self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+            # self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.set_reuse_addr()
             self.bind((bindaddress, port))
         except Exception as e:

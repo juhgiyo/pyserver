@@ -78,7 +78,7 @@ class AsyncTcpSocket(asyncore.dispatcher):
         self.transport = {'packet': None, 'type': PacketType.SIZE, 'size': SIZE_PACKET_LENGTH, 'offset': 0}
         self.send_queue = deque()  # thread-safe queue
         if self.server.no_delay:
-            self.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         AsyncController.instance().add(self)
         if callback is not None:
             self.callback.on_newconnection(self, None)
