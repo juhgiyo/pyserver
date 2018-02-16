@@ -40,7 +40,11 @@ import threading
 
 from pyserver.util.singleton import Singleton
 # noinspection PyDeprecation
-from sets import Set
+try:
+    set
+except:
+    from sets import Set as set
+
 import traceback
 import copy
 
@@ -52,7 +56,7 @@ class AsyncController(threading.Thread):
         self.should_stop_event = threading.Event()
         self.has_module_event = threading.Event()
         self.lock = threading.RLock()
-        self.module_set = Set([])
+        self.module_set = set([])
         self.timeout = 0.01
 
         # Self start the thread
@@ -64,11 +68,11 @@ class AsyncController(threading.Thread):
                 asyncore.loop(timeout=self.timeout)
                 #asyncore.loop()
             except Exception as e:
-                print e
+                print(e)
                 traceback.print_exc()
             self.has_module_event.wait()
         self.has_module_event.clear()
-        print 'async Thread exiting...'
+        print('async Thread exiting...')
 
     def stop(self):
         with self.lock:
@@ -77,9 +81,9 @@ class AsyncController(threading.Thread):
                 try:
                     item.close()
                 except Exception as e:
-                    print e
+                    print(e)
                     traceback.print_exc()
-            self.module_set = Set([])
+            self.module_set = set([])
         self.should_stop_event.set()
         self.has_module_event.set()
 
@@ -95,14 +99,14 @@ class AsyncController(threading.Thread):
                 try:
                     item.close()
                 except Exception as e:
-                    print e
+                    print(e)
                     traceback.print_exc()
-            self.module_set = Set([])
+            self.module_set = set([])
         if not self.should_stop_event.is_set():
             self.has_module_event.clear()
 
     def discard(self, module):
-        print 'asyncController discard called'
+        print('asyncController discard called')
         with self.lock:
             self.module_set.discard(module)
             if len(self.module_set) == 0 and not self.should_stop_event.is_set():

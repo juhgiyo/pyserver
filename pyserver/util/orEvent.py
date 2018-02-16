@@ -48,7 +48,7 @@ def orsubevent_set(self):
         try:
             callback()
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
 
 
@@ -61,7 +61,7 @@ def orsubevent_clear(self):
         try:
             callback()
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
 
 

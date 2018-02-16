@@ -36,17 +36,26 @@ THE SOFTWARE.
 AsyncMulticast Class.
 """
 
-import Queue
+try:
+    import Queue
+except ImportError:
+    from collections import queue
+
 import asyncore
 import socket
 import traceback
 import threading
 
-from serverConf import *
-from callbackInterface import *
-from asyncController import AsyncController
+from .serverConf import *
+from .callbackInterface import *
+from .asyncController import AsyncController
 # noinspection PyDeprecation
-from sets import Set
+
+try:
+    set
+except NameError:
+    from sets import Set as set
+
 import copy
 
 IP_MTU_DISCOVER = 10
@@ -67,7 +76,7 @@ functions
 - def getgrouplist() # get group list
 infos
 - multicast address range: 224.0.0.0 - 239.255.255.255
-- linux : route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0 
+- linux : route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
           to enable multicast
 '''
 
@@ -86,7 +95,7 @@ class AsyncMulticast(asyncore.dispatcher):
         self.MAX_MTU = 1500
         self.callback_obj = None
         self.port = port
-        self.multicastSet = Set([])
+        self.multicastSet = set([])
         self.lock = threading.RLock()
         self.ttl = ttl
         self.enable_loopback = enable_loopback
@@ -119,7 +128,7 @@ class AsyncMulticast(asyncore.dispatcher):
             # for RECEIVE to receive from multiple multicast groups
             self.bind(('', port))
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
         self.sendQueue = Queue.Queue()  # thread-safe queue
         AsyncController.instance().add(self)
@@ -137,7 +146,7 @@ class AsyncMulticast(asyncore.dispatcher):
             if data and self.callback_obj is not None:
                 self.callback_obj.on_received(self, addr, data)
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
 
     #def writable(self):
@@ -153,14 +162,14 @@ class AsyncMulticast(asyncore.dispatcher):
                 if sent < len(send_obj['data']):
                     state = State.FAIL_SOCKET_ERROR
             except Exception as e:
-                print e
+                print(e)
                 traceback.print_exc()
                 state = State.FAIL_SOCKET_ERROR
             try:
                 if self.callback_obj is not None:
                     self.callback_obj.on_sent(self, state, send_obj['data'])
             except Exception as e:
-                print e
+                print(e)
                 traceback.print_exc()
 
     def close(self):
@@ -179,18 +188,18 @@ class AsyncMulticast(asyncore.dispatcher):
                 if self.callback_obj is not None:
                     self.callback_obj.on_leave(self, multicast_addr)
             with self.lock:
-                self.multicastSet = Set([])
+                self.multicastSet = set([])
         except Exception as e:
-            print e
+            print(e)
 
-        print 'asyncUdp close called'
+        print('asyncUdp close called')
         asyncore.dispatcher.close(self)
         AsyncController.instance().discard(self)
         try:
             if self.callback_obj is not None:
                 self.callback_obj.on_stopped(self)
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
 
     # noinspection PyMethodOverriding
@@ -221,7 +230,7 @@ class AsyncMulticast(asyncore.dispatcher):
                     if self.callback_obj is not None:
                         self.callback_obj.on_leave(self, multicast_addr)
             except Exception as e:
-                print e
+                print(e)
 
     def getgrouplist(self):
         with self.lock:

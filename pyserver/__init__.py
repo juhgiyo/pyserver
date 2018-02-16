@@ -1,2 +1,2 @@
-from util import *
-from network import *
+from .util import *
+from .network import *

@@ -39,7 +39,7 @@ import signal
 
 from pyserver.network.asyncController import AsyncController
 
-from subProcController import *
+from .subProcController import *
 
 
 def set_sigterm(signal_event=None):
@@ -48,16 +48,16 @@ def set_sigterm(signal_event=None):
 
     # noinspection PyUnusedLocal
     def handler(signum, frame):
-        print 'Ctrl+C detected!'
+        print('Ctrl+C detected!')
         AsyncController.instance().stop()
         AsyncController.instance().join()
         SubProcController.instance().kill_all()
 
         if not signal_triggered[0] and signal_event is not None:
-            print 'You pressed Ctrl+C! Signaling event...'
+            print('You pressed Ctrl+C! Signaling event...')
             signal_event.set()
         else:
-            print 'You pressed Ctrl+C! Exiting...'
+            print('You pressed Ctrl+C! Exiting...')
             # noinspection PyProtectedMember
             os._exit(1)
         signal_triggered[0] = True
