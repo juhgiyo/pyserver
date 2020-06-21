@@ -40,12 +40,16 @@ import socket
 import threading
 from collections import deque
 
-from asyncController import AsyncController
-from callbackInterface import *
-from serverConf import *
+from .asyncController import AsyncController
+from .callbackInterface import *
+from .serverConf import *
 # noinspection PyDeprecation
-from sets import Set
-from preamble import *
+try:
+    set
+except NameError:
+    from sets import Set as set
+
+from .preamble import *
 import traceback
 import copy
 
@@ -74,7 +78,7 @@ class AsyncTcpSocket(asyncore.dispatcher):
         self.transport = {'packet': None, 'type': PacketType.SIZE, 'size': SIZE_PACKET_LENGTH, 'offset': 0}
         self.send_queue = deque()  # thread-safe queue
         if self.server.no_delay:
-            self.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         AsyncController.instance().add(self)
         if callback is not None:
             self.callback.on_newconnection(self, None)
@@ -109,7 +113,7 @@ class AsyncTcpSocket(asyncore.dispatcher):
                     self.transport = {'packet': None, 'type': PacketType.SIZE, 'size': SIZE_PACKET_LENGTH, 'offset': 0}
                     self.callback.on_received(self, receive_packet['packet'])
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
 
     #def writable(self):
@@ -126,14 +130,14 @@ class AsyncTcpSocket(asyncore.dispatcher):
                     self.send_queue.appendleft(send_obj)
                     return
             except Exception as e:
-                print e
+                print(e)
                 traceback.print_exc()
                 state = State.FAIL_SOCKET_ERROR
             try:
                 if self.callback is not None:
                     self.callback.on_sent(self, state, send_obj['data'][SIZE_PACKET_LENGTH:])
             except Exception as e:
-                print e
+                print(e)
                 traceback.print_exc()
 
     def close(self):
@@ -146,7 +150,7 @@ class AsyncTcpSocket(asyncore.dispatcher):
 
     def handle_close(self):
         try:
-            print 'asyncTcpSocket close called'
+            print('asyncTcpSocket close called')
             self.is_closing = True
             asyncore.dispatcher.close(self)
             self.server.discard_socket(self)
@@ -154,7 +158,7 @@ class AsyncTcpSocket(asyncore.dispatcher):
             if self.callback is not None:
                 self.callback.on_disconnect(self)
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
 
     def send(self, data):
@@ -184,7 +188,7 @@ class AsyncTcpServer(asyncore.dispatcher):
         asyncore.dispatcher.__init__(self)
         self.is_closing = False
         self.lock = threading.RLock()
-        self.sock_set = Set([])
+        self.sock_set = set([])
 
         self.acceptor = None
         if acceptor is not None and isinstance(acceptor, IAcceptor):
@@ -222,7 +226,7 @@ class AsyncTcpServer(asyncore.dispatcher):
                     if self.callback is not None:
                         self.callback.on_accepted(self, sock_obj)
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
 
     def close(self):
@@ -235,23 +239,23 @@ class AsyncTcpServer(asyncore.dispatcher):
 
     def handle_close(self):
         try:
-            print 'asyncTcpServer close called'
+            print('asyncTcpServer close called')
             self.is_closing = True
             with self.lock:
                 delete_set = copy.copy(self.sock_set)
                 for item in delete_set:
                     item.close()
-                self.sock_set = Set([])
+                self.sock_set = set([])
             asyncore.dispatcher.close(self)
             AsyncController.instance().discard(self)
             if self.callback is not None:
                 self.callback.on_stopped(self)
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
 
     def discard_socket(self, sock):
-        print 'asyncTcpServer discard socket called'
+        print('asyncTcpServer discard socket called')
         with self.lock:
             self.sock_set.discard(sock)
 
@@ -260,7 +264,7 @@ class AsyncTcpServer(asyncore.dispatcher):
             delete_set = copy.copy(self.sock_set)
             for item in delete_set:
                 item.close()
-            self.sock_set = Set([])
+            self.sock_set = set([])
 
     def get_socket_list(self):
         with self.lock:

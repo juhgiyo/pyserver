@@ -35,13 +35,17 @@ THE SOFTWARE.
 
 AsyncUDP Class.
 """
-import Queue
+try:
+    from Queue import Queue
+except ImportError:
+    from queue import Queue
+
 import asyncore
 import socket
 import traceback
-from callbackInterface import *
-from serverConf import *
-from asyncController import AsyncController
+from .callbackInterface import *
+from .serverConf import *
+from .asyncController import AsyncController
 
 IP_MTU_DISCOVER = 10
 IP_PMTUDISC_DONT = 0  # Never send DF frames.
@@ -72,14 +76,15 @@ class AsyncUDP(asyncore.dispatcher):
             raise Exception('callback is None or not an instance of IUdpCallback class')
         try:
             self.create_socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            # self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+            # self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.set_reuse_addr()
             self.bind((bindaddress, port))
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
-        self.send_queue = Queue.Queue()  # thread-safe queue
+        self.send_queue = Queue()  # thread-safe queue
         AsyncController.instance().add(self)
         if self.callback is not None:
             self.callback.on_started(self)
@@ -95,7 +100,7 @@ class AsyncUDP(asyncore.dispatcher):
             if data and self.callback is not None:
                 self.callback.on_received(self, addr, data)
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
 
     #def writable(self):
@@ -111,14 +116,14 @@ class AsyncUDP(asyncore.dispatcher):
                 if sent < len(send_obj['data']):
                     state = State.FAIL_SOCKET_ERROR
             except Exception as e:
-                print e
+                print(e)
                 traceback.print_exc()
                 state = State.FAIL_SOCKET_ERROR
             try:
                 if self.callback is not None:
                     self.callback.on_sent(self, state, send_obj['data'])
             except Exception as e:
-                print e
+                print(e)
                 traceback.print_exc()
 
     def close(self):
@@ -128,14 +133,14 @@ class AsyncUDP(asyncore.dispatcher):
         self.handle_close()
 
     def handle_close(self):
-        print 'asyncUdp close called'
+        print('asyncUdp close called')
         asyncore.dispatcher.close(self)
         AsyncController.instance().discard(self)
         try:
             if self.callback is not None:
                 self.callback.on_stopped(self)
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
 
     # noinspection PyMethodOverriding

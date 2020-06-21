@@ -37,7 +37,7 @@ SubProcController Class.
 """
 import threading
 
-from singleton import Singleton
+from .singleton import Singleton
 # noinspection PyDeprecation
 import traceback
 import copy
@@ -57,9 +57,9 @@ class SubProcController(object):
             for key in delete_set:
                 try:
                     self.sub_proc_map[key].terminate()
-                    print key, ' terminating...'
+                    print(key + ' terminating...')
                 except Exception as e:
-                    print e
+                    print(e)
                     traceback.print_exc()
             self.sub_proc_map = {}
 
@@ -77,12 +77,12 @@ class SubProcController(object):
                                         )
                 self.sub_proc_map[proc_name] = proc
             except Exception as e:
-                print e
+                print(e)
                 traceback.print_exc()
         return proc
 
     def kill(self, proc_name):
-        print 'subProcController kill called'
+        print('subProcController kill called')
         with self.lock:
             try:
                 if isinstance(proc_name, str):
@@ -99,7 +99,7 @@ class SubProcController(object):
                     if delete_key is not None:
                         del self.sub_proc_map[delete_key]
             except Exception as e:
-                print e
+                print(e)
                 traceback.print_exc()
 
 # foo = SubProcController.instance()

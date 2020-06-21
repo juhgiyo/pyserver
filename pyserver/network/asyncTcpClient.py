@@ -40,11 +40,11 @@ import socket
 from collections import deque
 import threading
 
-from asyncController import AsyncController
-from callbackInterface import *
-from serverConf import *
+from .asyncController import AsyncController
+from .callbackInterface import *
+from .serverConf import *
 # noinspection PyDeprecation
-from preamble import *
+from .preamble import *
 import traceback
 '''
 Interfaces
@@ -76,7 +76,7 @@ class AsyncTcpClient(asyncore.dispatcher):
 
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         if no_delay:
-            self.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.set_reuse_addr()
         err = None
         try:
@@ -125,7 +125,7 @@ class AsyncTcpClient(asyncore.dispatcher):
                     self.transport = {'packet': None, 'type': PacketType.SIZE, 'size': SIZE_PACKET_LENGTH, 'offset': 0}
                     self.callback.on_received(self, receive_packet['packet'])
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
 
     #def writable(self):
@@ -142,14 +142,14 @@ class AsyncTcpClient(asyncore.dispatcher):
                     self.send_queue.appendleft(send_obj)
                     return
             except Exception as e:
-                print e
+                print(e)
                 traceback.print_exc()
                 state = State.FAIL_SOCKET_ERROR
             try:
                 if self.callback is not None:
                     self.callback.on_sent(self, state, send_obj['data'][SIZE_PACKET_LENGTH:])
             except Exception as e:
-                print e
+                print(e)
                 traceback.print_exc()
 
     def close(self):
@@ -168,7 +168,7 @@ class AsyncTcpClient(asyncore.dispatcher):
             if self.callback is not None:
                 self.callback.on_disconnect(self)
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
 
     def send(self, data):
