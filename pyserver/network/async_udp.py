@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-@file asyncUDP.py
+@file async_udp.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
 @date March 10, 2016
@@ -43,9 +43,9 @@ except ImportError:
 import asyncore
 import socket
 import traceback
-from .callbackInterface import *
-from .serverConf import *
-from .asyncController import AsyncController
+from .callback_interface import *
+from .server_conf import *
+from .async_controller import AsyncController
 
 IP_MTU_DISCOVER = 10
 IP_PMTUDISC_DONT = 0  # Never send DF frames.

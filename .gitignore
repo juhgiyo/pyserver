@@ -3,3 +3,4 @@ dist/
 pyserver.egg-info/
 .idea/
 *.pyc
+.DS_Store

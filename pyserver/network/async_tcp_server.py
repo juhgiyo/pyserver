@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-@file asyncTcpServer.py
+@file async_tcp_server.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
 @date March 10, 2016
@@ -40,9 +40,9 @@ import socket
 import threading
 from collections import deque
 
-from .asyncController import AsyncController
-from .callbackInterface import *
-from .serverConf import *
+from .async_controller import AsyncController
+from .callback_interface import *
+from .server_conf import *
 # noinspection PyDeprecation
 try:
     set

@@ -1,10 +1,10 @@
 #!/usr/bin/python
 """
-@file serverConf.py
+@file sig_terminate.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
 @date March 10, 2016
-@brief Configurations Interface
+@brief SIGINT Terminate Interface
 @version 0.1
 
 @section LICENSE
@@ -33,9 +33,33 @@ THE SOFTWARE.
 
 @section DESCRIPTION
 
-Server Configurations Class.
+call set_sigterm() to terminate the python with Ctrl+C
 """
-from pyserver.util.enum import *
+import signal
 
-State = Enum(['SUCCESS', 'FAIL_SOCKET_ERROR'])
-PacketType = Enum(['SIZE', 'DATA'])
+from pyserver.network.async_controller import AsyncController
+
+from .subproc_controller import *
+
+
+def set_sigterm(signal_event=None):
+    # Setting console ctrl+c exit
+    signal_triggered = [False]
+
+    # noinspection PyUnusedLocal
+    def handler(signum, frame):
+        print('Ctrl+C detected!')
+        AsyncController.instance().stop()
+        AsyncController.instance().join()
+        SubProcController.instance().kill_all()
+
+        if not signal_triggered[0] and signal_event is not None:
+            print('You pressed Ctrl+C! Signaling event...')
+            signal_event.set()
+        else:
+            print('You pressed Ctrl+C! Exiting...')
+            # noinspection PyProtectedMember
+            os._exit(1)
+        signal_triggered[0] = True
+
+    signal.signal(signal.SIGINT, handler)

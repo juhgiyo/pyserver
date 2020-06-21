@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-@file asyncMulticast.py
+@file async_multicast.py
 @author Woong Gyu La a.k.a Chris. <juhgiyo@gmail.com>
         <http://github.com/juhgiyo/pyserver>
 @date March 10, 2016
@@ -46,9 +46,9 @@ import socket
 import traceback
 import threading
 
-from .serverConf import *
-from .callbackInterface import *
-from .asyncController import AsyncController
+from .server_conf import *
+from .callback_interface import *
+from .async_controller import AsyncController
 # noinspection PyDeprecation
 
 try:
