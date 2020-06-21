@@ -38,4 +38,5 @@ Enum Class.
 
 
 # noinspection PyPep8
-class Enum(tuple): __getattr__ = tuple.index
+class Enum(tuple):
+    __getattr__ = tuple.index

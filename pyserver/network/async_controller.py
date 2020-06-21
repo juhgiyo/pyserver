@@ -66,7 +66,7 @@ class AsyncController(threading.Thread):
         while not self.should_stop_event.is_set():
             try:
                 asyncore.loop(timeout=self.timeout)
-                #asyncore.loop()
+                # asyncore.loop()
             except Exception as e:
                 print(e)
                 traceback.print_exc()

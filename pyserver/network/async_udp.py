@@ -103,7 +103,7 @@ class AsyncUDP(asyncore.dispatcher):
             print(e)
             traceback.print_exc()
 
-    #def writable(self):
+    # def writable(self):
     #    return not self.send_queue.empty()
 
     # This is called all the time and causes errors if you leave it out.

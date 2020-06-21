@@ -72,9 +72,7 @@ class SubProcController(object):
                 def preexec_function():
                     os.setpgrp()
 
-                proc = subprocess.Popen(arg
-                                        , preexec_fn=preexec_function
-                                        )
+                proc = subprocess.Popen(arg, preexec_fn=preexec_function)
                 self.sub_proc_map[proc_name] = proc
             except Exception as e:
                 print(e)

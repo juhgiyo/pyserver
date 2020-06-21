@@ -149,7 +149,7 @@ class AsyncMulticast(asyncore.dispatcher):
             print(e)
             traceback.print_exc()
 
-    #def writable(self):
+    # def writable(self):
     #    return not self.sendQueue.empty()
 
     # This is called all the time and causes errors if you leave it out.
@@ -184,7 +184,7 @@ class AsyncMulticast(asyncore.dispatcher):
             delete_set = self.getgrouplist()
             for multicast_addr in delete_set:
                 self.socket.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP,
-                                socket.inet_aton(multicast_addr) + socket.inet_aton('0.0.0.0'))
+                                       socket.inet_aton(multicast_addr) + socket.inet_aton('0.0.0.0'))
                 if self.callback_obj is not None:
                     self.callback_obj.on_leave(self, multicast_addr)
             with self.lock:
