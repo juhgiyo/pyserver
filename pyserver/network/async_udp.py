@@ -161,7 +161,7 @@ class AsyncUDP(asyncore.dispatcher):
 
     def check_mtu_size(self, hostname, port):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(hostname, port)
+        s.connect((hostname, port))
         s.setsockopt(socket.IPPROTO_IP, IP_MTU_DISCOVER, IP_PMTUDISC_DO)
 
         max_mtu = self.MAX_MTU
